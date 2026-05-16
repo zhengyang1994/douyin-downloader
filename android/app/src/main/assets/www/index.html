@@ -729,47 +729,47 @@ function extractDouyinData(html) {
   var resolutions = [];
   var images = [];
 
-  var titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-  if (titleMatch) title = titleMatch[1].trim();
+  function getMeta(prop) {
+    var m = html.match(new RegExp('<meta[^>]+(?:property|name)=["\']' + prop.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '["\'][^>]*content=["\']([^"\']*)', 'i'));
+    if (!m) m = html.match(new RegExp('<meta[^>]+content=["\']([^"\']*)["\'][^>]+(?:property|name)=["\']' + prop.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '["\']', 'i'));
+    return m ? m[1] : null;
+  }
 
-  var ogTitle = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i);
-  if (ogTitle) title = ogTitle[1];
+  var ogTitle = getMeta('og:title');
+  if (ogTitle) title = ogTitle;
+  var ogImage = getMeta('og:image');
+  if (ogImage) cover = ogImage;
+  var ogVideoUrl = getMeta('og:video:url') || getMeta('og:video');
 
-  var ogImage = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i);
-  if (ogImage) cover = ogImage[1];
+  if (!title) {
+    var t = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (t) title = t[1].trim();
+  }
 
-  var ogDesc = html.match(/<meta[^>]+property="og:description"[^>]+content="([^"]+)"/i);
-  if (ogDesc && !title) title = ogDesc[1];
+  // Strategy 1: Find item_list JSON in entire HTML (for iesdouyin/share/note pages)
+  var itemListIdx = html.indexOf('"item_list"');
+  if (itemListIdx >= 0) {
+    try {
+      var start = html.lastIndexOf('{', itemListIdx);
+      // Find matching closing brace
+      var depth = 0, end = -1;
+      for (var p = start; p < html.length; p++) {
+        if (html[p] === '{') depth++;
+        else if (html[p] === '}') { depth--; if (depth === 0) { end = p + 1; break; } }
+      }
+      if (end > start) {
+        var data = JSON.parse(html.substring(start, end));
+        var items = data.item_list || [];
+        if (items.length > 0) {
+          var item = items[0];
+          title = item.desc || title;
+          if (item.author) author = item.author.nickname || author;
 
-  var ogVideo = html.match(/<meta[^>]+property="og:video:url"[^>]+content="([^"]+)"/i);
-  if (!ogVideo) ogVideo = html.match(/<meta[^>]+property="og:video"[^>]+content="([^"]+)"/i);
-
-  var scripts = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
-  for (var i = 0; i < scripts.length; i++) {
-    var content = scripts[i].replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
-
-    if (content.indexOf('"aweme_id"') >= 0 || content.indexOf('"awemeId"') >= 0) {
-      try {
-        var match = content.match(/\{[\s\S]*"aweme_id"[\s\S]*\}/);
-        if (!match) match = content.match(/\{[\s\S]*"awemeId"[\s\S]*\}/);
-        if (match) {
-          var data = JSON.parse(match[0]);
-          var detail = data.aweme_detail || data;
-
-          title = detail.desc || title;
-
-          if (detail.author && detail.author.nickname) {
-            author = detail.author.nickname;
-          }
-
-          if (detail.duration) {
-            duration = Math.floor((detail.duration || 0) / 1000);
-          }
-
-          if (detail.images && Array.isArray(detail.images) && detail.images.length > 0) {
+          // Check for images (图文笔记)
+          if (item.images && Array.isArray(item.images) && item.images.length > 0) {
             type = 'image';
-            for (var j = 0; j < detail.images.length; j++) {
-              var img = detail.images[j];
+            for (var j = 0; j < item.images.length; j++) {
+              var img = item.images[j];
               var urlList = img.url_list || img.urlList || [];
               var thumbList = img.thumb_url_list || img.thumbUrlList || urlList;
               images.push({
@@ -781,86 +781,140 @@ function extractDouyinData(html) {
             }
           }
 
-          var video = detail.video;
+          // Check for video
+          var video = item.video;
           if (video) {
             if (video.cover && video.cover.url_list && video.cover.url_list[0]) {
               cover = video.cover.url_list[0];
             }
-
             if (video.duration) {
               duration = Math.floor(video.duration / 1000);
             }
-
             var playAddr = video.play_addr;
             if (playAddr && playAddr.url_list && playAddr.url_list[0]) {
-              resolutions.push({
-                label: (playAddr.height || 720) >= 1080 ? '1080p' : (playAddr.height || 720) >= 720 ? '720p' : '480p',
-                url: playAddr.url_list[0],
-                width: playAddr.width || 720,
-                height: playAddr.height || 1280
-              });
+              var urlStr = playAddr.url_list[0];
+              // Filter out music URLs, only keep video URLs
+              if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
+                resolutions.push({
+                  label: playAddr.height >= 1080 ? '1080p' : playAddr.height >= 720 ? '720p' : '480p',
+                  url: urlStr,
+                  width: playAddr.width || 720,
+                  height: playAddr.height || 1280
+                });
+              }
             }
-
             var bitRates = video.bit_rate || [];
             for (var k = 0; k < bitRates.length; k++) {
               var br = bitRates[k];
               var brAddr = br.play_addr;
               if (brAddr && brAddr.url_list && brAddr.url_list[0]) {
-                var h = brAddr.height || br.height || 0;
-                var label = h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清';
-                resolutions.push({
-                  label: label,
-                  url: brAddr.url_list[0],
-                  width: brAddr.width || h || 1080,
-                  height: h || 1920
-                });
-              }
-            }
-
-            if (resolutions.length === 0) {
-              var dlAddr = video.download_addr;
-              if (dlAddr && dlAddr.url_list && dlAddr.url_list[0]) {
-                resolutions.push({
-                  label: '高清',
-                  url: dlAddr.url_list[0],
-                  width: dlAddr.width || 1080,
-                  height: dlAddr.height || 1920
-                });
+                var urlStr = brAddr.url_list[0];
+                if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
+                  var h = brAddr.height || br.height || 0;
+                  resolutions.push({
+                    label: h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清',
+                    url: urlStr,
+                    width: brAddr.width || h || 1080,
+                    height: h || 1920
+                  });
+                }
               }
             }
           }
-
-          if (ogVideo && resolutions.length === 0) {
-            resolutions.push({
-              label: '高清',
-              url: ogVideo[1],
-              width: 1080,
-              height: 1920
-            });
-          }
-
-          break;
         }
-      } catch (e) {}
+      }
+    } catch (e) {}
+  }
+
+  // Strategy 2: Find JSON in script tags with aweme_id (for www.douyin.com pages)
+  if (resolutions.length === 0 && type === 'video') {
+    var scripts = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
+    for (var i = 0; i < scripts.length; i++) {
+      var content = scripts[i].replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
+      if (content.indexOf('"aweme_id"') >= 0 || content.indexOf('"awemeId"') >= 0) {
+        try {
+          var match = content.match(/\{[\s\S]*?"aweme_id"[\s\S]*?\}/);
+          if (!match) match = content.match(/\{[\s\S]*?"awemeId"[\s\S]*?\}/);
+          if (match) {
+            var data = JSON.parse(match[0]);
+            var detail = data.aweme_detail || data;
+
+            title = detail.desc || title;
+            if (detail.author && detail.author.nickname) author = detail.author.nickname;
+            if (detail.duration) duration = Math.floor((detail.duration || 0) / 1000);
+
+            if (detail.images && Array.isArray(detail.images) && detail.images.length > 0) {
+              type = 'image';
+              for (var j = 0; j < detail.images.length; j++) {
+                var img = detail.images[j];
+                var urlList = img.url_list || img.urlList || [];
+                var thumbList = img.thumb_url_list || img.thumbUrlList || urlList;
+                images.push({
+                  url: urlList[0] || '',
+                  thumb: thumbList[0] || urlList[0] || '',
+                  width: img.width || 1080,
+                  height: img.height || 1920
+                });
+              }
+            }
+
+            var video = detail.video;
+            if (video) {
+              if (video.cover && video.cover.url_list && video.cover.url_list[0]) cover = video.cover.url_list[0];
+              if (video.duration) duration = Math.floor(video.duration / 1000);
+
+              var playAddr = video.play_addr;
+              if (playAddr && playAddr.url_list && playAddr.url_list[0]) {
+                var urlStr = playAddr.url_list[0];
+                if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
+                  resolutions.push({
+                    label: playAddr.height >= 1080 ? '1080p' : playAddr.height >= 720 ? '720p' : '480p',
+                    url: urlStr,
+                    width: playAddr.width || 720,
+                    height: playAddr.height || 1280
+                  });
+                }
+              }
+
+              var bitRates = video.bit_rate || [];
+              for (var k = 0; k < bitRates.length; k++) {
+                var br = bitRates[k];
+                var brAddr = br.play_addr;
+                if (brAddr && brAddr.url_list && brAddr.url_list[0]) {
+                  var urlStr = brAddr.url_list[0];
+                  if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
+                    var h = brAddr.height || br.height || 0;
+                    resolutions.push({
+                      label: h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清',
+                      url: urlStr,
+                      width: brAddr.width || h || 1080,
+                      height: h || 1920
+                    });
+                  }
+                }
+              }
+
+              if (resolutions.length === 0) {
+                var dlAddr = video.download_addr;
+                if (dlAddr && dlAddr.url_list && dlAddr.url_list[0]) {
+                  resolutions.push({ label: '高清', url: dlAddr.url_list[0], width: dlAddr.width || 1080, height: dlAddr.height || 1920 });
+                }
+              }
+            }
+            break;
+          }
+        } catch (e) {}
+      }
     }
   }
 
-  if (resolutions.length === 0 && ogVideo) {
-    resolutions.push({
-      label: '高清',
-      url: ogVideo[1],
-      width: 1080,
-      height: 1920
-    });
+  // Fallback: use og:video if no resolutions found
+  if (resolutions.length === 0 && ogVideoUrl) {
+    resolutions.push({ label: '高清', url: ogVideoUrl, width: 1080, height: 1920 });
   }
 
   if (type === 'image' && images.length === 0 && cover) {
-    images.push({
-      url: cover,
-      thumb: cover,
-      width: 1080,
-      height: 1920
-    });
+    images.push({ url: cover, thumb: cover, width: 1080, height: 1920 });
   }
 
   return {
