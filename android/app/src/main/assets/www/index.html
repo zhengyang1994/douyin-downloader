@@ -821,13 +821,59 @@ function extractDouyinData(html) {
                 var urlStr = brAddr.url_list[0];
                 if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
                   var h = brAddr.height || br.height || 0;
-                  resolutions.push({
-                    label: h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清',
-                    url: urlStr,
-                    width: brAddr.width || h || 1080,
-                    height: h || 1920
-                  });
+                  // Deduplicate by URL
+                  var isDup = false;
+                  for (var r = 0; r < resolutions.length; r++) {
+                    if (resolutions[r].url === urlStr) { isDup = true; break; }
+                  }
+                  if (!isDup) {
+                    resolutions.push({
+                      label: h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清',
+                      url: urlStr,
+                      width: brAddr.width || h || 1080,
+                      height: h || 1920
+                    });
+                  }
                 }
+              }
+            }
+
+            // If only one resolution, generate additional quality options
+            if (resolutions.length === 1) {
+              var mainUrl = resolutions[0].url;
+              var mainH = resolutions[0].height;
+              var origH = video.height || mainH;
+              // Generate non-watermark version
+              var nwUrl = mainUrl.replace('/playwm/', '/play/');
+              if (nwUrl !== mainUrl) {
+                resolutions.push({
+                  label: origH >= 1080 ? '1080p' : '高清',
+                  url: nwUrl,
+                  width: video.width || 1920,
+                  height: origH
+                });
+              }
+              // If original is higher than current, add original resolution
+              if (origH > mainH && !nwUrl || nwUrl === mainUrl) {
+                resolutions.push({
+                  label: origH >= 1080 ? '原画' : '高清',
+                  url: mainUrl,
+                  width: video.width || 1920,
+                  height: origH
+                });
+              }
+            }
+
+            // Try download_addr as another option
+            var dlAddr = video.download_addr;
+            if (dlAddr && dlAddr.url_list && dlAddr.url_list[0]) {
+              var dlUrl = dlAddr.url_list[0];
+              var isDup = false;
+              for (var r = 0; r < resolutions.length; r++) {
+                if (resolutions[r].url === dlUrl) { isDup = true; break; }
+              }
+              if (!isDup && dlUrl.indexOf('ies-music') < 0 && dlUrl.indexOf('.mp3') < 0) {
+                resolutions.push({ label: '下载版', url: dlUrl, width: dlAddr.width || 720, height: dlAddr.height || 1280 });
               }
             }
           }
@@ -894,20 +940,49 @@ function extractDouyinData(html) {
                   var urlStr = brAddr.url_list[0];
                   if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
                     var h = brAddr.height || br.height || 0;
-                    resolutions.push({
-                      label: h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清',
-                      url: urlStr,
-                      width: brAddr.width || h || 1080,
-                      height: h || 1920
-                    });
+                    var isDup = false;
+                    for (var r = 0; r < resolutions.length; r++) {
+                      if (resolutions[r].url === urlStr) { isDup = true; break; }
+                    }
+                    if (!isDup) {
+                      resolutions.push({
+                        label: h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清',
+                        url: urlStr,
+                        width: brAddr.width || h || 1080,
+                        height: h || 1920
+                      });
+                    }
                   }
                 }
               }
 
-              if (resolutions.length === 0) {
+              // Generate additional resolution options if only one available
+              if (resolutions.length === 1) {
+                var mainUrl = resolutions[0].url;
+                var mainH = resolutions[0].height;
+                var origH = video.height || mainH;
+                var nwUrl = mainUrl.replace('/playwm/', '/play/');
+                if (nwUrl !== mainUrl) {
+                  resolutions.push({
+                    label: origH >= 1080 ? '1080p' : '高清',
+                    url: nwUrl,
+                    width: video.width || 1920,
+                    height: origH
+                  });
+                }
+                if (origH > mainH && (nwUrl === mainUrl)) {
+                  resolutions.push({ label: '原画', url: mainUrl, width: video.width || 1920, height: origH });
+                }
                 var dlAddr = video.download_addr;
                 if (dlAddr && dlAddr.url_list && dlAddr.url_list[0]) {
-                  resolutions.push({ label: '高清', url: dlAddr.url_list[0], width: dlAddr.width || 1080, height: dlAddr.height || 1920 });
+                  var dlUrl = dlAddr.url_list[0];
+                  var isDup = false;
+                  for (var r = 0; r < resolutions.length; r++) {
+                    if (resolutions[r].url === dlUrl) { isDup = true; break; }
+                  }
+                  if (!isDup && dlUrl.indexOf('ies-music') < 0 && dlUrl.indexOf('.mp3') < 0) {
+                    resolutions.push({ label: '下载版', url: dlUrl, width: dlAddr.width || 720, height: dlAddr.height || 1280 });
+                  }
                 }
               }
             }
