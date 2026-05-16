@@ -747,10 +747,20 @@ function extractDouyinData(html) {
   }
 
   // Strategy 1: Find item_list JSON in entire HTML (for iesdouyin/share/note pages)
-  var itemListIdx = html.indexOf('"item_list"');
+  // Search for "item_list":[ to find the actual data (not "item_list":null)
+  var itemListIdx = html.indexOf('"item_list":[');
   if (itemListIdx >= 0) {
     try {
-      var start = html.lastIndexOf('{', itemListIdx);
+      // Walk backward from item_list, counting braces to find the outer opening brace
+      var start = itemListIdx;
+      var braceCount = 0;
+      for (var p = itemListIdx; p >= 0; p--) {
+        if (html[p] === '}') braceCount++;
+        else if (html[p] === '{') {
+          braceCount--;
+          if (braceCount < 0) { start = p; break; }
+        }
+      }
       // Find matching closing brace
       var depth = 0, end = -1;
       for (var p = start; p < html.length; p++) {
