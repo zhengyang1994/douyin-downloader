@@ -22,87 +22,106 @@
 #
 #   Important for running:
 #
-#       (1) You need a POSIX-compliant shell to run this script.
+#   (1) You need a POSIX-compliant shell to run this script. If your /bin/sh is
+#       noncompliant, but you have some other compliant shell such as ksh or
+#       bash, then to run this script, type that shell name before the whole
+#       command line, like:
 #
-#   Optional environment variables:
+#           ksh Gradle
 #
-#       GRADLE_JAVA_OPTS
-#               (optional) Java command line options used to run Gradle.
+#       Busybox and similar reduced shells will NOT work, because this script
+#       requires all of these POSIX shell features:
+#         * functions;
+#         * expansions «$var», «${var}», «${var:-default}», «${var+SET}»,
+#           «${var#prefix}», «${var%suffix}», and «$( cmd )»;
+#         * compound commands having a testable exit status, especially «case»;
+#         * various built-in commands including «command», «set», and «ulimit».
 #
-#       JAVA_HOME
-#               (optional) Directory of Java installation to be used.
+#   Important for patching:
 #
-#       GRADLE_EXIT_CONSOLE
-#               (optional) Set to '1' to force Gradle to exit with a
-#               non-zero exit code when the script has an error.
+#   (2) This script targets any POSIX shell, so it avoids extensions provided
+#       by Bash, Ksh, etc; in particular arrays are avoided.
 #
-#               Note: Gradle will always exit with an appropriate exit
-#               code when running interactively.
+#       The "traditional" practice of packing multiple parameters into a
+#       space-separated string is a well documented source of bugs and security
+#       problems, so this is (mostly) avoided, by progressively accumulating
+#       options in "$@", and eventually passing that to Java.
 #
-#       GRADLE_USER_HOME
-#               (optional) Directory for Gradle user data, instead of ~/.gradle.
+#       Where the inherited environment variables (DEFAULT_JVM_OPTS, JAVA_OPTS,
+#       and GRADLE_OPTS) rely on word-splitting, this is performed explicitly;
+#       see the in-line comments for details.
+#
+#       There are tweaks for specific operating systems such as AIX, CygWin,
+#       Darwin, MinGW, and NonStop.
+#
+#   (3) This script is generated from the Groovy template
+#       https://github.com/gradle/gradle/blob/HEAD/subprojects/plugins/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt
+#       within the Gradle project.
+#
+#       You can find Gradle at https://github.com/gradle/gradle/.
 #
 ##############################################################################
 
 # Attempt to set APP_HOME
+
 # Resolve links: $0 may be a link
-APP_HOME=$(cd "$(dirname "$0")" && pwd)
-while [ -h "$APP_HOME/$APP_NAME" ]; do
-    ls=$(ls -ld "$APP_HOME/$APP_NAME")
-    link=$(expr "$ls" : '.*-> \(.*\)$')
-    if expr "$link" : '/.*' > /dev/null; then
-        APP_HOME="$link"
-    else
-        APP_HOME=$(dirname "$APP_HOME")"/$link"
-    fi
+app_path=$0
+
+# Need this for daisy-chained symlinks.
+while
+    APP_HOME=${app_path%"${app_path##*/}"}  # leaves a trailing /; empty if no leading path
+    [ -h "$app_path" ]
+do
+    ls=$( ls -ld "$app_path" )
+    link=${ls#*' -> '}
+    case $link in             #(
+      /*)   app_path=$link ;; #(
+      *)    app_path=$APP_HOME$link ;;
+    esac
 done
 
-# Set APP_BASE_NAME to the name of this script
-APP_BASE_NAME=$(basename "$0")
+# This is normally unused
+# shellcheck disable=SC2034
+APP_BASE_NAME=${0##*/}
+# Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
+APP_HOME=$( cd "${APP_HOME:-./}" > /dev/null && pwd -P ) || exit
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
-MAX_FD="maximum"
+MAX_FD=maximum
 
 warn () {
     echo "$*"
-}
+} >&2
 
 die () {
     echo
     echo "$*"
     echo
     exit 1
-}
+} >&2
 
 # OS specific support (must be 'true' or 'false').
 cygwin=false
 msys=false
 darwin=false
 nonstop=false
-case "$(uname)" in
-  CYGWIN* )
-    cygwin=true
-    ;;
-  Darwin* )
-    darwin=true
-    ;;
-  MINGW* | MSYS* )
-    msys=true
-    ;;
-  NONSTOP* )
-    nonstop=true
-    ;;
+case "$( uname )" in                #(
+  CYGWIN* )         cygwin=true  ;; #(
+  Darwin* )         darwin=true  ;; #(
+  MSYS* | MINGW* )  msys=true    ;; #(
+  NONSTOP* )        nonstop=true ;;
 esac
 
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+
 
 # Determine the Java command to use to start the JVM.
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
         # IBM's JDK on AIX uses strange locations for the executables
-        JAVACMD="$JAVA_HOME/jre/sh/java"
+        JAVACMD=$JAVA_HOME/jre/sh/java
     else
-        JAVACMD="$JAVA_HOME/bin/java"
+        JAVACMD=$JAVA_HOME/bin/java
     fi
     if [ ! -x "$JAVACMD" ] ; then
         die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
@@ -111,203 +130,120 @@ Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
     fi
 else
-    JAVACMD="java"
-    command -v java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+    JAVACMD=java
+    if ! command -v java >/dev/null 2>&1
+    then
+        die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
 
 Please set the JAVA_HOME variable in your environment to match the
 location of your Java installation."
+    fi
 fi
 
 # Increase the maximum file descriptors if we can.
-if [ "$cygwin" = "false" -a "$darwin" = "false" -a "$nonstop" = "false" ] ; then
-    MAX_FD_LIMIT=$(ulimit -H -n)
-    if [ $? -eq 0 ] ; then
-        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
-            MAX_FD="$MAX_FD_LIMIT"
-        fi
-        ulimit -n "$MAX_FD"
-        if [ $? -ne 0 ] ; then
-            warn "Could not set maximum file descriptor limit: $MAX_FD"
-        fi
-    else
-        warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
-    fi
+if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
+    case $MAX_FD in #(
+      max*)
+        # In POSIX sh, ulimit -H is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        MAX_FD=$( ulimit -H -n ) ||
+            warn "Could not query maximum file descriptor limit"
+    esac
+    case $MAX_FD in  #(
+      '' | soft) :;; #(
+      *)
+        # In POSIX sh, ulimit -n is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC2039,SC3045
+        ulimit -n "$MAX_FD" ||
+            warn "Could not set maximum file descriptor limit to $MAX_FD"
+    esac
 fi
 
-# For Darwin, add options to specify how the application appears in the dock
-if $darwin; then
-    GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_BASE_NAME\""
-fi
+# Collect all arguments for the java command, stacking in reverse order:
+#   * args from the command line
+#   * the main class name
+#   * -classpath
+#   * -D...appname settings
+#   * --module-path (only if needed)
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, and GRADLE_OPTS environment variables.
 
 # For Cygwin or MSYS, switch paths to Windows format before running java
-if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
-    APP_HOME=$(cygpath --path --mixed "$APP_HOME")
-    CLASSPATH=$(cygpath --path --mixed "$CLASSPATH")
-    JAVACMD=$(cygpath --unix "$JAVACMD")
+if "$cygwin" || "$msys" ; then
+    APP_HOME=$( cygpath --path --mixed "$APP_HOME" )
+    CLASSPATH=$( cygpath --path --mixed "$CLASSPATH" )
 
-    # We build the pattern for arguments to be converted via cygpath
-    ROOTDIRS_RAW=$(cygpath --path --mixed --list-sigwin-codes)
-    ROOTDIRS="$(echo "$ROOTDIRS_RAW" | sed -e 's/\\\$/\\\\\\$/g' -e 's/\//\\\//g' -e 's/|/\\|/g')"
-    WINDOWS_PATHS_PATTERN="(^|;)($ROOTDIRS):"
-    case "(;)$*" in
-      *";--help"|*";-?"*)
-        SHORT_OPTS="true";;
-    esac
+    JAVACMD=$( cygpath --unix "$JAVACMD" )
 
-    if [ "$SHORT_OPTS" = "true" ] ; then
-        # shellcheck disable=SC2016
-        printf 'Usage: %s [OPTION]... [ARG]...\n' "$APP_BASE_NAME"
-        printf '  -?,-h,--help         show this help and exit\n'
-        printf '  -v,--version        show version and exit\n'
-        printf '  -q,--quiet          log errors only\n'
-        printf '  -w,--warn           set log level to warn\n'
-        printf '  -i,--info           set log level to info\n'
-        printf '  -d,--debug          log in debug mode (includes normal stacktrace)\n'
-        printf '  --stacktrace        output the full stacktrace for all exceptions\n'
-        printf '  --no-daemon         do not use the Gradle daemon for the build\n'
-        printf '  --foreground        do not attempt to use the daemon if it is running\n'
-        printf '                      start in the foreground\n'
-        printf '  -D,--system-prop    set JVM system property of the form key=value\n'
-        printf '  -I,--init-script    specify initialization script\n'
-        printf '  -b,--build-file     set build file\n'
-        printf '  -c,--settings-file  set settings file\n'
-        printf '  -g,--gradle-user-home   sets the gradle user home directory\n'
-        printf '  -p,--project-dir    set project directory\n'
-        printf '  -u,--no-search-upward  dont search in parent directories\n'
-        printf '  --include-build     include the build in the composite\n'
-        printf '  --offline           execute the build without accessing network resources\n'
-        printf '  --refresh-dependencies  refresh the state of dependencies\n'
-        printf '  --dry-run           run the build with all task actions disabled\n'
-        printf '  --write-locks       write the state of dependency locks for the subprojects\n'
-        printf '  --no-write-locks    dont write the state of dependency locks for the subprojects\n'
-        printf '  --update-locks      update the state of dependency locks for the subprojects\n'
-        printf '  --no-configuration-cache  do not use the configuration cache for the build\n'
-        printf '  --configuration-cache   use the configuration cache for the build\n'
-        printf '  --no-build-cache    do not use the build cache\n'
-        printf '  --build-cache       use the build cache\n'
-        printf '  --continue          continue task execution after a failure\n'
-        printf '  --no-parallel       do not use parallel builds\n'
-        printf '  --parallel          use parallel builds\n'
-        printf '  --no-configure-on-demand  do not use configure on demand\n'
-        printf '  --configure-on-demand  use configure on demand\n'
-        printf '  --no-scan           do not create a build scan, even if the plugin is applied\n'
-        printf '  --scan              create a build scan\n'
-        printf '\n'
-        printf 'Environment variables:\n'
-        printf '  GRADLE_JAVA_OPTS        (optional) JVM arguments for Gradle\n'
-        printf '  JAVA_HOME              (optional) Location of Java installation\n'
-        printf '  GRADLE_EXIT_CONSOLE    (optional) If non-empty, exit code of the script is\n'
-        printf '                          used instead of that of Gradle.\n'
-        exit 0
-    fi
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    for arg do
+        if
+            case $arg in                                #(
+              -*)   false ;;                            # don't mess with options #(
+              /?*)  t=${arg#/} t=/${t%%/*}              # looks like a POSIX filepath
+                    [ -e "$t" ] ;;                      #(
+              *)    false ;;
+            esac
+        then
+            arg=$( cygpath --path --ignore --mixed "$arg" )
+        fi
+        # Roll the args list around exactly as many times as the number of
+        # args, so each arg winds up back in the position where it started, but
+        # possibly modified.
+        #
+        # NB: a `for` loop captures its iteration list before it begins, so
+        # changing the positional parameters here affects neither the number of
+        # iterations, nor the values presented in `arg`.
+        shift                   # remove old arg
+        set -- "$@" "$arg"      # push replacement arg
+    done
 fi
 
-# Collect all arguments for the java command, following the getopt shell
-# parsing rules (short options can be grouped, long options can be separated
-# by space or =).
+
+# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+DEFAULT_JVM_OPTS='-Dfile.encoding=UTF-8 "-Xmx64m" "-Xms64m"'
+
+# Collect all arguments for the java command:
+#   * DEFAULT_JVM_OPTS, JAVA_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
+#     and any embedded shellness will be escaped.
+#   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable and will be
+#     treated as '${Hostname}' itself on the command line.
+
+set -- \
+        "-Dorg.gradle.appname=$APP_BASE_NAME" \
+        -classpath "$CLASSPATH" \
+        org.gradle.wrapper.GradleWrapperMain \
+        "$@"
+
+# Stop when "xargs" is not available.
+if ! command -v xargs >/dev/null 2>&1
+then
+    die "xargs is not available"
+fi
+
+# Use "xargs" to parse quoted args.
 #
-# However, we do NOT want to touch the arguments that will be passed to
-# the actual command. We will leave those intact.
-APP_ARGS=
+# With -n1 it outputs one arg per line, with the quotes and backslashes removed.
+#
+# In Bash we could simply go:
+#
+#   readarray ARGS < <( xargs -n1 <<<"$var" ) &&
+#   set -- "${ARGS[@]}" "$@"
+#
+# but POSIX shell has neither arrays nor command substitution, so instead we
+# post-process each arg (as a line of input to sed) to backslash-escape any
+# character that might be a shell metacharacter, then use eval to reverse
+# that process (while maintaining the separation between arguments), and wrap
+# the whole thing up as a single "set" statement.
+#
+# This will of course break if any of these variables contains a newline or
+# an unmatched quote.
+#
 
-while true ; do
-    case "$1" in
-        -D*=*)
-            APP_ARGS="$APP_ARGS '$1'"
-            shift
-            ;;
-        -D*)
-            warn "Invalid system property argument: $1"
-            APP_ARGS="$APP_ARGS '$1'"
-            shift
-            ;;
-        --system-prop)
-            APP_ARGS="$APP_ARGS '-D$2'"
-            shift 2
-            ;;
-        -D)
-            warn "Invalid system property argument: $1"
-            APP_ARGS="$APP_ARGS '-D$2'"
-            shift 2
-            ;;
-        --init-script|-I)
-            APP_ARGS="$APP_ARGS '-I=$2'"
-            shift 2
-            ;;
-        --build-file|-b)
-            APP_ARGS="$APP_ARGS '-b=$2'"
-            shift 2
-            ;;
-        --settings-file|-c)
-            APP_ARGS="$APP_ARGS '-c=$2'"
-            shift 2
-            ;;
-        --gradle-user-home|-g)
-            APP_ARGS="$APP_ARGS '-g=$2'"
-            shift 2
-            ;;
-        --project-dir|-p)
-            APP_ARGS="$APP_ARGS '-p=$2'"
-            shift 2
-            ;;
-        --no-search-upward|-u)
-            APP_ARGS="$APP_ARGS '-u'"
-            shift
-            ;;
-        --include-build)
-            APP_ARGS="$APP_ARGS '--include-build=$2'"
-            shift 2
-            ;;
-        --no-daemon)
-            APP_ARGS="$APP_ARGS '--no-daemon'"
-            shift
-            ;;
-        --foreground)
-            APP_ARGS="$APP_ARGS '--foreground'"
-            shift
-            ;;
-        -v|--version)
-            echo "Gradle 8.5"
-            exit 0
-            ;;
-        --)
-            shift
-            break
-            ;;
-        *)
-            break
-            ;;
-    esac
-done
+eval "set -- $(
+        printf '%s\n' "$DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS" |
+        xargs -n1 |
+        sed ' s~[^-[:alnum:]+,./:=@_]~\\&~g; ' |
+        tr '\n' ' '
+    )" '"$@"'
 
-# Split up the JVM_OPTS into an array, following the shell quoting and
-# splitting rules, and then add them to the java_args array
-JVM_OPTS_ARRAY=
-eval set -- "$JVM_OPTS"
-for arg do
-    JVM_OPTS_ARRAY="$JVM_OPTS_ARRAY '$arg'"
-done
-
-# Split up the DEFAULT_JVM_OPTS into an array, following the shell quoting
-# and splitting rules, and then add them to the java_args array
-eval set -- "$DEFAULT_JVM_OPTS"
-for arg do
-    DEFAULT_JVM_OPTS_ARRAY="$DEFAULT_JVM_OPTS_ARRAY '$arg'"
-done
-
-# Escape application args
-save () {
-    for i do printf %s\\n "$i" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/' \\\\/"; done
-    echo " "
-}
-APP_ARGS=$(save "$@")
-
-# Collect all arguments for the java command, following the shell quoting
-# and substitution rules
-eval set -- $DEFAULT_JVM_OPTS_ARRAY $JVM_OPTS_ARRAY $GRADLE_OPTS "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
-
-# Execute Gradle
-"$JAVACMD" "$@"
-
-# Exit with the status code of Gradle
-exit $?
+exec "$JAVACMD" "$@"
