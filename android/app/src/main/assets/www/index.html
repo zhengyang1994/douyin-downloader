@@ -874,6 +874,31 @@ function extractDouyinData(html) {
   };
 }
 
+var fetchCallbacks = {};
+var fetchCallbackId = 0;
+
+window.__nativeFetchCallback = function(id, html, error) {
+  var cb = fetchCallbacks[id];
+  if (cb) {
+    delete fetchCallbacks[id];
+    if (error) {
+      cb.onerror(error);
+    } else {
+      cb.onsuccess(html);
+    }
+  }
+};
+
+function nativeFetchUrl(url, onsuccess, onerror) {
+  if (typeof AndroidBridge !== 'undefined' && AndroidBridge.fetchUrl) {
+    var id = 'fetch_' + (++fetchCallbackId);
+    fetchCallbacks[id] = { onsuccess: onsuccess, onerror: onerror };
+    AndroidBridge.fetchUrl(url, id);
+    return true;
+  }
+  return false;
+}
+
 function handleParse() {
   if (!state.inputUrl.trim()) return;
 
@@ -893,64 +918,65 @@ function handleParse() {
     return;
   }
 
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url, true);
-  xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36');
-  xhr.timeout = 15000;
-
-  xhr.onload = function() {
+  function onFetchSuccess(html) {
     state.isLoading = false;
-
-    if (xhr.status >= 200 && xhr.status < 400) {
-      try {
-        var data = extractDouyinData(xhr.responseText);
-
-        if (data.type === 'image') {
-          state.parseResult = {
-            type: 'image',
-            title: data.title,
-            author: data.author,
-            images: data.images
-          };
-        } else {
-          state.parseResult = {
-            type: 'video',
-            title: data.title,
-            cover: data.cover,
-            duration: data.duration,
-            author: data.author,
-            resolutions: data.resolutions.length > 0 ? data.resolutions : [
-              { label: '480p', url: '', width: 480, height: 854 },
-              { label: '720p', url: '', width: 720, height: 1280 },
-            ]
-          };
-          state.selectedResolution = state.parseResult.resolutions[0] ? state.parseResult.resolutions[0].label : null;
-        }
-
-        nativeToast('解析成功');
-      } catch (e) {
-        state.error = '解析失败：' + e.message;
+    try {
+      var data = extractDouyinData(html);
+      if (data.type === 'image') {
+        state.parseResult = {
+          type: 'image',
+          title: data.title,
+          author: data.author,
+          images: data.images
+        };
+      } else {
+        state.parseResult = {
+          type: 'video',
+          title: data.title,
+          cover: data.cover,
+          duration: data.duration,
+          author: data.author,
+          resolutions: data.resolutions.length > 0 ? data.resolutions : [
+            { label: '480p', url: '', width: 480, height: 854 },
+            { label: '720p', url: '', width: 720, height: 1280 },
+          ]
+        };
+        state.selectedResolution = state.parseResult.resolutions[0] ? state.parseResult.resolutions[0].label : null;
       }
-    } else {
-      state.error = '请求失败（状态码：' + xhr.status + '），请检查链接是否正确';
+      nativeToast('解析成功');
+    } catch (e) {
+      state.error = '解析失败：' + e.message;
     }
-
     render();
-  };
+  }
 
-  xhr.onerror = function() {
+  function onFetchError(msg) {
     state.isLoading = false;
-    state.error = '网络请求失败，请检查网络连接';
+    state.error = '网络请求失败：' + msg;
     render();
-  };
+  }
 
-  xhr.ontimeout = function() {
-    state.isLoading = false;
-    state.error = '请求超时，请稍后重试';
-    render();
-  };
+  // Try native fetch first (most reliable), fallback to XHR
+  if (!nativeFetchUrl(url, onFetchSuccess, onFetchError)) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36');
+    xhr.timeout = 15000;
 
-  xhr.send();
+    xhr.onload = function() {
+      onFetchSuccess(xhr.responseText);
+    };
+
+    xhr.onerror = function() {
+      onFetchError('网络连接失败，请检查网络');
+    };
+
+    xhr.ontimeout = function() {
+      onFetchError('请求超时，请稍后重试');
+    };
+
+    xhr.send();
+  }
 }
 
 function handleVideoDownload() {

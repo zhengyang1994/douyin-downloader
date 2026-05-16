@@ -15,7 +15,11 @@ import android.webkit.JavascriptInterface
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 
 class WebAppInterface(private val context: Context, private val activity: MainActivity) {
 
@@ -98,5 +102,43 @@ class WebAppInterface(private val context: Context, private val activity: MainAc
             return clip.getItemAt(0).text?.toString() ?: ""
         }
         return ""
+    }
+
+    @JavascriptInterface
+    fun fetchUrl(url: String, callbackId: String) {
+        Thread {
+            try {
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 15000
+                conn.readTimeout = 15000
+                conn.instanceFollowRedirects = true
+                conn.setRequestProperty(
+                    "User-Agent",
+                    "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                )
+
+                val code = conn.responseCode
+                if (code in 200..399) {
+                    val html = BufferedReader(InputStreamReader(conn.inputStream)).readText()
+                    val escaped = html
+                        .replace("\\", "\\\\")
+                        .replace("'", "\\'")
+                        .replace("\n", "\\n")
+                        .replace("\r", "\\r")
+                    activity.runOnUiThread {
+                        activity.evaluateJavascript("window.__nativeFetchCallback('$callbackId', '$escaped', null)")
+                    }
+                } else {
+                    activity.runOnUiThread {
+                        activity.evaluateJavascript("window.__nativeFetchCallback('$callbackId', null, 'HTTP $code')")
+                    }
+                }
+            } catch (e: Exception) {
+                val msg = (e.message ?: "Unknown error").replace("'", "\\'")
+                activity.runOnUiThread {
+                    activity.evaluateJavascript("window.__nativeFetchCallback('$callbackId', null, '$msg')")
+                }
+            }
+        }.start()
     }
 }

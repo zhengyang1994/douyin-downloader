@@ -78,6 +78,11 @@ class MainActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             }
+            // Allow JavaScript from file:// URLs to make cross-origin requests
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                allowFileAccessFromFileURLs = true
+                allowUniversalAccessFromFileURLs = true
+            }
         }
 
         webView.addJavascriptInterface(
@@ -199,6 +204,10 @@ class MainActivity : AppCompatActivity() {
             IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
             Context.RECEIVER_NOT_EXPORTED
         )
+    }
+
+    fun evaluateJavascript(js: String) {
+        webView.evaluateJavascript(js, null)
     }
 
     private fun unregisterDownloadReceiver() {
