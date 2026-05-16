@@ -1,15 +1,19 @@
 import { useAppStore } from '../store/useAppStore'
+import { useDownloadProcessor } from '../hooks/useDownloadProcessor'
 import Header from '../components/Header'
 import UrlInput from '../components/UrlInput'
 import ParseButton from '../components/ParseButton'
 import ErrorMessage from '../components/ErrorMessage'
 import VideoResult from '../components/VideoResult'
 import ImageResult from '../components/ImageResult'
+import DownloadQueue from '../components/DownloadQueue'
 import Toast from '../components/Toast'
 
 export default function Home() {
   const parseResult = useAppStore((s) => s.parseResult)
   const error = useAppStore((s) => s.error)
+
+  useDownloadProcessor()
 
   return (
     <div className="min-h-screen min-h-dvh bg-brand-black pb-12">
@@ -26,6 +30,8 @@ export default function Home() {
       {parseResult && parseResult.type === 'image' && (
         <ImageResult data={parseResult} />
       )}
+
+      <DownloadQueue />
 
       {!parseResult && !error && (
         <div className="px-5 mt-10 text-center">

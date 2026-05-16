@@ -7,3 +7,9 @@ export function sanitizeFilename(name: string, maxLen = 80): string {
   }
   return clean || 'download'
 }
+
+let _idCounter = 0
+
+export function generateId(): string {
+  return `dl_${Date.now()}_${++_idCounter}_${Math.random().toString(36).slice(2, 8)}`
+}

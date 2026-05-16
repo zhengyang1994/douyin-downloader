@@ -12,6 +12,7 @@
 - **多分辨率** — 自动解析多种分辨率（高清/标清）供选择
 - **深色主题** — 抖音风格霓虹暗色 UI
 - **分享唤起** — 支持从抖音 App 分享链接直接唤起本应用
+- **下载队列** — 集中管理所有下载任务，实时显示进度，支持重试和清除已完成
 - **Web 版本** — 也可通过浏览器直接使用（`standalone.html` + `server.cjs`）
 
 ## 下载 APK
@@ -46,8 +47,9 @@ npm run dev
 ## 项目结构
 
 ```
-├── src/                    # Web 前端（Vue + Tailwind）
-│   ├── components/         # 视频/图片展示组件
+├── src/                    # Web 前端（React + Tailwind）
+│   ├── components/         # 视频/图片/下载队列等 UI 组件
+│   ├── hooks/              # 自定义 Hooks（下载队列处理等）
 │   └── utils/              # 工具函数（API 请求、文件名清理等）
 ├── api/                    # 后端代理服务（Express）
 │   ├── routes/proxy.ts     # 下载代理（解决跨域）
@@ -67,7 +69,7 @@ npm run dev
 | 层 | 技术 |
 |---|---|
 | Android 壳 | Kotlin + WebView + DownloadManager |
-| 前端 UI | Vue 3 + Tailwind CSS + TypeScript |
+| 前端 UI | React + Tailwind CSS + TypeScript |
 | 后端代理 | Express + axios（Node.js） |
 | 数据解析 | 纯 JS 解析抖音页面水印数据 |
 | 构建 | Gradle 8.5 + AGP 8.2.2 |

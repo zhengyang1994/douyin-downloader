@@ -1,7 +1,6 @@
 import { Download, Clock, User, Play } from 'lucide-react'
 import type { VideoResource } from '../../shared/types'
 import { useAppStore } from '../store/useAppStore'
-import { downloadFile } from '../utils/api'
 import { sanitizeFilename } from '../utils/helpers'
 import ResolutionSelector from './ResolutionSelector'
 
@@ -11,10 +10,9 @@ interface VideoResultProps {
 
 export default function VideoResult({ data }: VideoResultProps) {
   const selectedResolution = useAppStore((s) => s.selectedResolution)
-  const downloadProgress = useAppStore((s) => s.downloadProgress)
-  const setDownloadProgress = useAppStore((s) => s.setDownloadProgress)
   const showToast = useAppStore((s) => s.showToast)
   const isLoading = useAppStore((s) => s.isLoading)
+  const addToQueue = useAppStore((s) => s.addToQueue)
 
   const selectedRes = data.resolutions.find((r) => r.label === selectedResolution)
 
@@ -24,21 +22,11 @@ export default function VideoResult({ data }: VideoResultProps) {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     if (!selectedRes) return
-
-    try {
-      setDownloadProgress(0)
-      const filename = `${sanitizeFilename(data.title) || 'douyin_video'}_${selectedRes.label}.mp4`
-      await downloadFile(selectedRes.url, filename, (progress) => {
-        setDownloadProgress(progress)
-      })
-      showToast('下载完成！视频已保存到手机', 'success')
-    } catch {
-      showToast('下载失败，请重试', 'error')
-    } finally {
-      setDownloadProgress(0)
-    }
+    const filename = `${sanitizeFilename(data.title) || 'douyin_video'}_${selectedRes.label}.mp4`
+    addToQueue({ filename, url: selectedRes.url, type: 'video' })
+    showToast('已添加到下载队列', 'success')
   }
 
   return (
@@ -86,7 +74,7 @@ export default function VideoResult({ data }: VideoResultProps) {
 
           <button
             onClick={handleDownload}
-            disabled={isLoading || !selectedResolution || downloadProgress > 0}
+            disabled={isLoading || !selectedResolution}
             className="ripple-effect w-full mt-4 py-3 rounded-xl font-bold text-sm tracking-wider
               bg-gradient-to-r from-brand-cyan to-brand-cyan-dark
               text-brand-black
@@ -98,17 +86,8 @@ export default function VideoResult({ data }: VideoResultProps) {
               flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
-            {downloadProgress > 0 ? `下载中 ${downloadProgress}%` : '下载视频'}
+            下载视频
           </button>
-
-          {downloadProgress > 0 && (
-            <div className="mt-3 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-brand-cyan to-brand-pink rounded-full transition-all duration-300"
-                style={{ width: `${downloadProgress}%` }}
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>

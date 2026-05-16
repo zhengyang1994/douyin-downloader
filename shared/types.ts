@@ -42,13 +42,25 @@ export interface ParseErrorResponse {
 
 export type ParseResponse = ParseSuccessResponse | ParseErrorResponse
 
+export type DownloadStatus = 'queued' | 'downloading' | 'completed' | 'error'
+
+export interface DownloadItem {
+  id: string
+  filename: string
+  url: string
+  type: 'video' | 'image'
+  status: DownloadStatus
+  progress: number
+  errorMessage?: string
+}
+
 export interface AppState {
   inputUrl: string
   isLoading: boolean
   parseResult: ParseResult | null
   error: string | null
   selectedResolution: string | null
-  downloadProgress: number
+  downloadItems: DownloadItem[]
   toastMessage: string | null
   toastType: 'success' | 'error' | null
   setInputUrl: (url: string) => void
@@ -56,7 +68,11 @@ export interface AppState {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setSelectedResolution: (label: string) => void
-  setDownloadProgress: (progress: number) => void
+  addToQueue: (item: { filename: string; url: string; type: 'video' | 'image' }) => void
+  updateDownloadItem: (id: string, updates: Partial<DownloadItem>) => void
+  removeDownloadItem: (id: string) => void
+  clearCompletedDownloads: () => void
+  retryDownload: (id: string) => void
   showToast: (message: string, type: 'success' | 'error') => void
   hideToast: () => void
   reset: () => void

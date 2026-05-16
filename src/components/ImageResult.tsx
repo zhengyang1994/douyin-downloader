@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Download, Image as ImageIcon, User, Check } from 'lucide-react'
 import type { ImageResource } from '../../shared/types'
 import { useAppStore } from '../store/useAppStore'
-import { downloadFile } from '../utils/api'
 import { sanitizeFilename } from '../utils/helpers'
 
 interface ImageResultProps {
@@ -11,8 +10,7 @@ interface ImageResultProps {
 
 export default function ImageResult({ data }: ImageResultProps) {
   const showToast = useAppStore((s) => s.showToast)
-  const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null)
-  const [downloadingAll, setDownloadingAll] = useState(false)
+  const addToQueue = useAppStore((s) => s.addToQueue)
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
 
   const toggleSelect = (index: number) => {
@@ -27,50 +25,30 @@ export default function ImageResult({ data }: ImageResultProps) {
     })
   }
 
-  const handleDownloadSingle = async (index: number) => {
+  const handleDownloadSingle = (index: number) => {
     const img = data.images[index]
     if (!img) return
 
-    try {
-      setDownloadingIndex(index)
-      const ext = img.url.includes('.webp') ? 'webp' : 'jpg'
-      const filename = `${sanitizeFilename(data.title) || 'douyin_image'}_${index + 1}.${ext}`
-      await downloadFile(img.url, filename)
-      showToast('图片已保存到手机', 'success')
-    } catch {
-      showToast('下载失败，请重试', 'error')
-    } finally {
-      setDownloadingIndex(null)
-    }
+    const ext = img.url.includes('.webp') ? 'webp' : 'jpg'
+    const filename = `${sanitizeFilename(data.title) || 'douyin_image'}_${index + 1}.${ext}`
+    addToQueue({ filename, url: img.url, type: 'image' })
+    showToast('已添加到下载队列', 'success')
   }
 
-  const handleDownloadSelected = async () => {
+  const handleDownloadSelected = () => {
     if (selectedIndices.size === 0) return
 
-    try {
-      setDownloadingAll(true)
-      let successCount = 0
+    for (const index of selectedIndices) {
+      const img = data.images[index]
+      if (!img) continue
 
-      for (const index of selectedIndices) {
-        const img = data.images[index]
-        if (!img) continue
-
-        try {
-          const ext = img.url.includes('.webp') ? 'webp' : 'jpg'
-          const filename = `${sanitizeFilename(data.title) || 'douyin_image'}_${index + 1}.${ext}`
-          await downloadFile(img.url, filename)
-          successCount++
-        } catch {
-          // 单张失败继续下载
-        }
-      }
-
-      showToast(`已保存 ${successCount}/${selectedIndices.size} 张图片`, 'success')
-    } catch {
-      showToast('批量下载失败', 'error')
-    } finally {
-      setDownloadingAll(false)
+      const ext = img.url.includes('.webp') ? 'webp' : 'jpg'
+      const filename = `${sanitizeFilename(data.title) || 'douyin_image'}_${index + 1}.${ext}`
+      addToQueue({ filename, url: img.url, type: 'image' })
     }
+
+    showToast(`已添加 ${selectedIndices.size} 张图片到下载队列`, 'success')
+    setSelectedIndices(new Set())
   }
 
   return (
@@ -121,18 +99,12 @@ export default function ImageResult({ data }: ImageResultProps) {
                     e.stopPropagation()
                     handleDownloadSingle(index)
                   }}
-                  disabled={downloadingIndex === index}
                   className="absolute bottom-2 right-2 w-8 h-8 rounded-lg bg-black/60 backdrop-blur-sm
                     flex items-center justify-center
                     text-white/70 hover:text-white hover:bg-brand-pink/60
-                    disabled:opacity-40
                     transition-all duration-200 opacity-0 group-hover:opacity-100"
                 >
-                  {downloadingIndex === index ? (
-                    <div className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Download className="w-3.5 h-3.5" />
-                  )}
+                  <Download className="w-3.5 h-3.5" />
                 </button>
               </div>
             ))}
@@ -141,7 +113,7 @@ export default function ImageResult({ data }: ImageResultProps) {
           <div className="flex gap-2 mt-4">
             <button
               onClick={handleDownloadSelected}
-              disabled={selectedIndices.size === 0 || downloadingAll}
+              disabled={selectedIndices.size === 0}
               className="ripple-effect flex-1 py-3 rounded-xl font-bold text-sm tracking-wider
                 bg-gradient-to-r from-brand-cyan to-brand-cyan-dark
                 text-brand-black
@@ -153,11 +125,9 @@ export default function ImageResult({ data }: ImageResultProps) {
                 flex items-center justify-center gap-2"
             >
               <Download className="w-4 h-4" />
-              {downloadingAll
-                ? '下载中...'
-                : selectedIndices.size > 0
-                  ? `下载选中 (${selectedIndices.size})`
-                  : '选择图片下载'}
+              {selectedIndices.size > 0
+                ? `下载选中 (${selectedIndices.size})`
+                : '选择图片下载'}
             </button>
 
             <button
