@@ -805,12 +805,29 @@ function extractDouyinData(html) {
               var urlStr = playAddr.url_list[0];
               // Filter out music URLs, only keep video URLs
               if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
-                resolutions.push({
-                  label: playAddr.height >= 1080 ? '1080p' : playAddr.height >= 720 ? '720p' : '480p',
-                  url: urlStr,
-                  width: playAddr.width || 720,
-                  height: playAddr.height || 1280
-                });
+                var origH = video.height || 720;
+                // Add current resolution from the original URL
+                var curRatioMatch = urlStr.match(/ratio=(\d+)p/i);
+                var curRatio = curRatioMatch ? parseInt(curRatioMatch[1]) : (playAddr.height || 720);
+                var curLabel = curRatio >= 2160 ? '4K' : curRatio >= 1440 ? '2K' : curRatio >= 1080 ? '1080p' : curRatio >= 720 ? '720p' : '480p';
+                resolutions.push({ label: curLabel, url: urlStr, width: Math.round(curRatio * 16/9) || 1920, height: curRatio });
+                // Generate more resolutions by changing the ratio parameter
+                if (curRatioMatch) {
+                  var ratioOps = [2160, 1440, 1080, 720, 480];
+                  for (var ri = 0; ri < ratioOps.length; ri++) {
+                    var r = ratioOps[ri];
+                    if (r === curRatio || r > origH) continue;
+                    var rUrl = urlStr.replace(/ratio=\d+p/i, 'ratio=' + r + 'p');
+                    var label = r >= 2160 ? '4K' : r >= 1440 ? '2K' : r >= 1080 ? '1080p' : r >= 720 ? '720p' : '480p';
+                    resolutions.push({ label: label, url: rUrl, width: Math.round(r * 16/9) || 1920, height: r });
+                  }
+                }
+                // Add non-watermark version
+                var nwUrl = urlStr.replace('/playwm/', '/play/');
+                if (nwUrl !== urlStr) {
+                  var nwLabel = origH >= 2160 ? '4K(无水印)' : origH >= 1080 ? '1080p(无水印)' : '720p(无水印)';
+                  resolutions.push({ label: nwLabel, url: nwUrl, width: video.width || 1920, height: origH });
+                }
               }
             }
             var bitRates = video.bit_rate || [];
@@ -835,32 +852,6 @@ function extractDouyinData(html) {
                     });
                   }
                 }
-              }
-            }
-
-            // If only one resolution, generate additional quality options
-            if (resolutions.length === 1) {
-              var mainUrl = resolutions[0].url;
-              var mainH = resolutions[0].height;
-              var origH = video.height || mainH;
-              // Generate non-watermark version
-              var nwUrl = mainUrl.replace('/playwm/', '/play/');
-              if (nwUrl !== mainUrl) {
-                resolutions.push({
-                  label: origH >= 1080 ? '1080p' : '高清',
-                  url: nwUrl,
-                  width: video.width || 1920,
-                  height: origH
-                });
-              }
-              // If original is higher than current, add original resolution
-              if (origH > mainH && !nwUrl || nwUrl === mainUrl) {
-                resolutions.push({
-                  label: origH >= 1080 ? '原画' : '高清',
-                  url: mainUrl,
-                  width: video.width || 1920,
-                  height: origH
-                });
               }
             }
 
@@ -923,12 +914,26 @@ function extractDouyinData(html) {
               if (playAddr && playAddr.url_list && playAddr.url_list[0]) {
                 var urlStr = playAddr.url_list[0];
                 if (urlStr.indexOf('ies-music') < 0 && urlStr.indexOf('.mp3') < 0) {
-                  resolutions.push({
-                    label: playAddr.height >= 1080 ? '1080p' : playAddr.height >= 720 ? '720p' : '480p',
-                    url: urlStr,
-                    width: playAddr.width || 720,
-                    height: playAddr.height || 1280
-                  });
+                  var origH = video.height || 720;
+                  var curRatioMatch = urlStr.match(/ratio=(\d+)p/i);
+                  var curRatio = curRatioMatch ? parseInt(curRatioMatch[1]) : (playAddr.height || 720);
+                  var curLabel = curRatio >= 2160 ? '4K' : curRatio >= 1440 ? '2K' : curRatio >= 1080 ? '1080p' : curRatio >= 720 ? '720p' : '480p';
+                  resolutions.push({ label: curLabel, url: urlStr, width: Math.round(curRatio * 16/9) || 1920, height: curRatio });
+                  if (curRatioMatch) {
+                    var ratioOps = [2160, 1440, 1080, 720, 480];
+                    for (var ri = 0; ri < ratioOps.length; ri++) {
+                      var r = ratioOps[ri];
+                      if (r === curRatio || r > origH) continue;
+                      var rUrl = urlStr.replace(/ratio=\d+p/i, 'ratio=' + r + 'p');
+                      var label = r >= 2160 ? '4K' : r >= 1440 ? '2K' : r >= 1080 ? '1080p' : r >= 720 ? '720p' : '480p';
+                      resolutions.push({ label: label, url: rUrl, width: Math.round(r * 16/9) || 1920, height: r });
+                    }
+                  }
+                  var nwUrl = urlStr.replace('/playwm/', '/play/');
+                  if (nwUrl !== urlStr) {
+                    var nwLabel = origH >= 2160 ? '4K(无水印)' : origH >= 1080 ? '1080p(无水印)' : '720p(无水印)';
+                    resolutions.push({ label: nwLabel, url: nwUrl, width: video.width || 1920, height: origH });
+                  }
                 }
               }
 
@@ -956,23 +961,13 @@ function extractDouyinData(html) {
                 }
               }
 
+              }
+
               // Generate additional resolution options if only one available
               if (resolutions.length === 1) {
                 var mainUrl = resolutions[0].url;
                 var mainH = resolutions[0].height;
                 var origH = video.height || mainH;
-                var nwUrl = mainUrl.replace('/playwm/', '/play/');
-                if (nwUrl !== mainUrl) {
-                  resolutions.push({
-                    label: origH >= 1080 ? '1080p' : '高清',
-                    url: nwUrl,
-                    width: video.width || 1920,
-                    height: origH
-                  });
-                }
-                if (origH > mainH && (nwUrl === mainUrl)) {
-                  resolutions.push({ label: '原画', url: mainUrl, width: video.width || 1920, height: origH });
-                }
                 var dlAddr = video.download_addr;
                 if (dlAddr && dlAddr.url_list && dlAddr.url_list[0]) {
                   var dlUrl = dlAddr.url_list[0];
