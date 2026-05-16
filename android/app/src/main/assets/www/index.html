@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D0D0D">
+<title>抖音下载器</title>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+  background: #0D0D0D;
+  color: #fff;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgba(255,0,80,0.3); color: #fff; }
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  min-height: 100dvh;
+}
+
+.header {
+  text-align: center;
+  padding: 32px 20px 20px;
+}
+.header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,0,80,0.15), rgba(0,242,234,0.15));
+  border: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 12px;
+}
+.header-icon svg { width: 24px; height: 24px; }
+.header h1 {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF0050, #FF0050 40%, #00F2EA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+.header p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+.header-line {
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, #FF0050, #00F2EA);
+  border-radius: 1px;
+  margin: 12px auto 0;
+  opacity: 0.6;
+}
+
+.url-section { padding: 0 16px; }
+.url-wrapper { position: relative; }
+.url-glow {
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(255,0,80,0.25), rgba(0,242,234,0.25));
+  border-radius: 16px;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.url-wrapper:focus-within .url-glow { opacity: 0.8; }
+.url-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #0D0D0D;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.url-wrapper:focus-within .url-input-wrap { border-color: rgba(255,0,80,0.4); }
+.url-input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  padding: 14px 12px;
+  outline: none;
+}
+.url-input-wrap input::placeholder { color: rgba(255,255,255,0.2); }
+.url-input-wrap input:disabled { opacity: 0.5; }
+.btn-paste {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #FF0050;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  margin-right: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.btn-paste:active { color: #00F2EA; }
+.btn-clear {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.2);
+  padding: 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.btn-clear:active { color: rgba(255,255,255,0.5); }
+
+.btn-parse-wrap { padding: 12px 16px 0; }
+.btn-parse {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #FF0050, #CC0040);
+  box-shadow: 0 0 24px rgba(255,0,80,0.35), 0 0 48px rgba(255,0,80,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-parse:active { transform: scale(0.98); }
+.btn-parse:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-parse .spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-box {
+  margin: 12px 16px 0;
+  padding: 12px 16px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: fadeSlideIn 0.3s ease;
+}
+.error-box svg { width: 18px; height: 18px; color: #f87171; flex-shrink: 0; margin-top: 1px; }
+.error-box p { font-size: 13px; color: #fca5a5; line-height: 1.5; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-section { animation: fadeSlideIn 0.4s ease; }
+.result-card {
+  margin: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.video-cover {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.video-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+}
+.video-cover .play-icon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-cover .duration {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  background: rgba(0,0,0,0.6);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.result-info { padding: 16px; }
+.result-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+}
+.result-meta span { display: flex; align-items: center; gap: 4px; }
+
+.res-section { margin-top: 16px; }
+.res-section .res-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.res-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.res-chip {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.45);
+  transition: all 0.2s;
+}
+.res-chip:active { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+.res-chip.active {
+  background: linear-gradient(135deg, rgba(255,0,80,0.15), rgba(255,0,80,0.05));
+  border-color: rgba(255,0,80,0.35);
+  color: #FF0050;
+  box-shadow: 0 0 16px rgba(255,0,80,0.15);
+}
+.res-chip .res-size {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.25);
+  margin-top: 2px;
+}
+.res-chip.active .res-size { color: rgba(255,0,80,0.6); }
+
+.btn-download {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  color: #0D0D0D;
+  background: linear-gradient(135deg, #00F2EA, #00C0BA);
+  box-shadow: 0 0 24px rgba(0,242,234,0.35), 0 0 48px rgba(0,242,234,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-download:active { transform: scale(0.98); }
+.btn-download:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
+@media(min-width:480px) { .image-grid { grid-template-columns: repeat(3, 1fr); } }
+.image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.image-item:active img { transform: scale(1.05); }
+.image-item .check-mark {
+  display: none;
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #FF0050;
+  box-shadow: 0 0 12px rgba(255,0,80,0.5);
+  align-items: center;
+  justify-content: center;
+}
+.image-item.selected .check-mark { display: flex; }
+.image-item .img-dl-btn {
+  position: absolute;
+  bottom: 8px; right: 8px;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.55);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.image-item .img-dl-btn:active { background: rgba(255,0,80,0.6); color: #fff; }
+
+.img-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.btn-img-dl {
+  flex: 1;
+  padding: 13px;
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  color: #0D0D0D;
+  background: linear-gradient(135deg, #00F2EA, #00C0BA);
+  box-shadow: 0 0 24px rgba(0,242,234,0.35), 0 0 48px rgba(0,242,234,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-img-dl:active { transform: scale(0.98); }
+.btn-img-dl:disabled { opacity: 0.3; box-shadow: none; cursor: not-allowed; transform: none; }
+.btn-select-all {
+  padding: 13px 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-select-all:active { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  opacity: 0.25;
+}
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+var ICONS = {
+  logo: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF0050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  paste: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
+  x: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  zap: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  alert: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
+  play: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+  user: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  clock: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  download: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+  image: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+  check: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  dlSmall: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+  arrowDown: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+};
+
+function formatDuration(seconds) {
+  var mins = Math.floor(seconds / 60);
+  var secs = seconds % 60;
+  return mins + ':' + (secs < 10 ? '0' : '') + secs;
+}
+
+var state = {
+  inputUrl: '',
+  isLoading: false,
+  parseResult: null,
+  error: null,
+  selectedResolution: null,
+  selectedImages: [],
+  downloadingIndex: -1,
+  downloadingAll: false,
+};
+
+function hasNative() {
+  return typeof window.DouyinNative !== 'undefined' || typeof window.AndroidBridge !== 'undefined';
+}
+
+function nativeToast(msg) {
+  if (typeof window.DouyinNative !== 'undefined' && window.DouyinNative.showToast) {
+    window.DouyinNative.showToast(msg);
+  } else if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.showToast) {
+    window.AndroidBridge.showToast(msg);
+  }
+}
+
+function nativeDownload(url, filename, mimeType) {
+  if (typeof window.DouyinNative !== 'undefined' && window.DouyinNative.downloadFile) {
+    window.DouyinNative.downloadFile(url, filename, mimeType || '');
+    return true;
+  }
+  if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.downloadFile) {
+    window.AndroidBridge.downloadFile(url, filename, mimeType || '');
+    return true;
+  }
+  return false;
+}
+
+function nativeGetClipboard() {
+  if (typeof window.DouyinNative !== 'undefined' && window.DouyinNative.getClipboard) {
+    return window.DouyinNative.getClipboard();
+  }
+  if (typeof window.AndroidBridge !== 'undefined' && window.AndroidBridge.getClipboardText) {
+    return window.AndroidBridge.getClipboardText();
+  }
+  return '';
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function render() {
+  var app = document.getElementById('app');
+  var r = state.parseResult;
+
+  app.innerHTML =
+    '<div class="header">' +
+      '<div class="header-icon">' + ICONS.logo + '</div>' +
+      '<h1>抖音下载器</h1>' +
+      '<p>粘贴链接，一键下载</p>' +
+      '<div class="header-line"></div>' +
+    '</div>' +
+
+    '<div class="url-section">' +
+      '<div class="url-wrapper">' +
+        '<div class="url-glow"></div>' +
+        '<div class="url-input-wrap">' +
+          '<input type="text" id="urlInput" value="' + escapeHtml(state.inputUrl) +
+            '" placeholder="在此粘贴抖音分享链接..."' +
+            (state.isLoading ? ' disabled' : '') +
+            ' autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />' +
+          (state.inputUrl ? '<button class="btn-clear" id="btnClear">' + ICONS.x + '</button>' : '') +
+          '<button class="btn-paste" id="btnPaste">' + ICONS.paste + ' 粘贴</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="btn-parse-wrap">' +
+      '<button class="btn-parse" id="btnParse"' + (state.isLoading || !state.inputUrl.trim() ? ' disabled' : '') + '>' +
+        (state.isLoading
+          ? '<span class="spinner"></span> 解析中...'
+          : ICONS.zap + ' 解析链接') +
+      '</button>' +
+    '</div>' +
+
+    (state.error ? '<div class="error-box">' + ICONS.alert + '<p>' + escapeHtml(state.error) + '</p></div>' : '') +
+
+    (r && r.type === 'video' ? renderVideoResult(r) : '') +
+    (r && r.type === 'image' ? renderImageResult(r) : '') +
+
+    (!r && !state.error
+      ? '<div class="empty-state">' + ICONS.arrowDown + '<p>支持抖音视频和图集下载</p></div>'
+      : '');
+
+  bindEvents();
+}
+
+function renderVideoResult(data) {
+  var sel = state.selectedResolution;
+  return '<div class="result-section">' +
+    '<div class="result-card">' +
+      '<div class="video-cover">' +
+        '<img src="' + escapeHtml(data.cover) + '" alt="" onerror="this.style.display=\'none\'" />' +
+        '<div class="video-cover-overlay"></div>' +
+        '<div class="play-icon">' + ICONS.play + '</div>' +
+        '<div class="duration">' + formatDuration(data.duration) + '</div>' +
+      '</div>' +
+      '<div class="result-info">' +
+        '<div class="result-title">' + escapeHtml(data.title) + '</div>' +
+        '<div class="result-meta">' +
+          '<span>' + ICONS.user + ' ' + escapeHtml(data.author) + '</span>' +
+          '<span>' + ICONS.clock + ' ' + formatDuration(data.duration) + '</span>' +
+        '</div>' +
+
+        '<div class="res-section">' +
+          '<div class="res-label">选择分辨率</div>' +
+          '<div class="res-chips">' +
+            data.resolutions.map(function(r) {
+              return '<div class="res-chip' + (sel === r.label ? ' active' : '') + '" data-res="' + r.label + '">' +
+                r.label + '<span class="res-size">' + r.width + 'x' + r.height + '</span></div>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+
+        '<button class="btn-download" id="btnVideoDownload">' +
+          ICONS.download + ' 下载视频' +
+        '</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderImageResult(data) {
+  var self = this;
+  return '<div class="result-section">' +
+    '<div class="result-card">' +
+      '<div class="result-info">' +
+        '<div class="result-title">' + escapeHtml(data.title) + '</div>' +
+        '<div class="result-meta">' +
+          '<span>' + ICONS.user + ' ' + escapeHtml(data.author) + '</span>' +
+        '</div>' +
+
+        '<div class="image-grid">' +
+          data.images.map(function(img, i) {
+            var isSelected = state.selectedImages.indexOf(i) >= 0;
+            return '<div class="image-item' + (isSelected ? ' selected' : '') + '" data-img-idx="' + i + '">' +
+              '<img src="' + escapeHtml(img.thumb) + '" alt="" loading="lazy"' +
+                ' onerror="var p=this.parentElement;var e=document.createElement(\'div\');e.style.cssText=\'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.15)\';e.innerHTML=\'' + ICONS.image.replace(/'/g, "\\'") + '\';p.appendChild(e);this.style.display=\'none\'" />' +
+              '<div class="check-mark">' + ICONS.check + '</div>' +
+              '<button class="img-dl-btn" data-dl-idx="' + i + '">' +
+                (state.downloadingIndex === i
+                  ? '<span style="display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;"></span>'
+                  : ICONS.dlSmall) +
+              '</button>' +
+            '</div>';
+          }).join('') +
+        '</div>' +
+
+        '<div class="img-actions">' +
+          '<button class="btn-img-dl" id="btnImgDownload"' +
+            (state.selectedImages.length === 0 || state.downloadingAll ? ' disabled' : '') + '>' +
+            ICONS.download + ' ' +
+            (state.downloadingAll
+              ? '下载中...'
+              : state.selectedImages.length > 0
+                ? '下载选中 (' + state.selectedImages.length + ')'
+                : '选择图片下载') +
+          '</button>' +
+          '<button class="btn-select-all" id="btnSelectAll">' +
+            ICONS.image + ' 全选' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function bindEvents() {
+  var urlInput = document.getElementById('urlInput');
+  var btnParse = document.getElementById('btnParse');
+  var btnPaste = document.getElementById('btnPaste');
+  var btnClear = document.getElementById('btnClear');
+
+  if (urlInput) {
+    urlInput.addEventListener('input', function(e) {
+      state.inputUrl = e.target.value;
+      render();
+    });
+    urlInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && state.inputUrl.trim() && !state.isLoading) {
+        handleParse();
+      }
+    });
+  }
+
+  if (btnPaste) {
+    btnPaste.addEventListener('click', function() {
+      if (hasNative()) {
+        var text = nativeGetClipboard();
+        if (text) {
+          state.inputUrl = text;
+          render();
+          return;
+        }
+      }
+      try {
+        navigator.clipboard.readText().then(function(text) {
+          state.inputUrl = text;
+          render();
+        });
+      } catch (e) {
+        document.getElementById('urlInput') && document.getElementById('urlInput').focus();
+      }
+    });
+  }
+
+  if (btnClear) {
+    btnClear.addEventListener('click', function() {
+      state.inputUrl = '';
+      render();
+      var inp = document.getElementById('urlInput');
+      if (inp) inp.focus();
+    });
+  }
+
+  if (btnParse) {
+    btnParse.addEventListener('click', handleParse);
+  }
+
+  var chips = document.querySelectorAll('.res-chip');
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].addEventListener('click', function() {
+      state.selectedResolution = this.getAttribute('data-res');
+      render();
+    });
+  }
+
+  var btnVdl = document.getElementById('btnVideoDownload');
+  if (btnVdl) btnVdl.addEventListener('click', handleVideoDownload);
+
+  var items = document.querySelectorAll('.image-item');
+  for (var j = 0; j < items.length; j++) {
+    items[j].addEventListener('click', function(e) {
+      if (e.target.closest('.img-dl-btn')) return;
+      var idx = parseInt(this.getAttribute('data-img-idx'));
+      var pos = state.selectedImages.indexOf(idx);
+      if (pos >= 0) {
+        state.selectedImages.splice(pos, 1);
+      } else {
+        state.selectedImages.push(idx);
+      }
+      render();
+    });
+  }
+
+  var dlBtns = document.querySelectorAll('.img-dl-btn');
+  for (var k = 0; k < dlBtns.length; k++) {
+    dlBtns[k].addEventListener('click', function(e) {
+      e.stopPropagation();
+      var idx = parseInt(this.getAttribute('data-dl-idx'));
+      handleSingleImageDownload(idx);
+    });
+  }
+
+  var btnImgDl = document.getElementById('btnImgDownload');
+  if (btnImgDl) btnImgDl.addEventListener('click', handleBatchImageDownload);
+
+  var btnSelectAll = document.getElementById('btnSelectAll');
+  if (btnSelectAll) {
+    btnSelectAll.addEventListener('click', function() {
+      var data = state.parseResult;
+      if (data && data.type === 'image') {
+        if (state.selectedImages.length === data.images.length) {
+          state.selectedImages = [];
+        } else {
+          state.selectedImages = [];
+          for (var i = 0; i < data.images.length; i++) {
+            state.selectedImages.push(i);
+          }
+        }
+      }
+      render();
+    });
+  }
+}
+
+function isValidDouyinUrl(url) {
+  return /https?:\/\/(v\.douyin\.com|www\.douyin\.com|www\.iesdouyin\.com)\/\S+/i.test(url);
+}
+
+function extractDouyinData(html) {
+  var title = '';
+  var author = '';
+  var cover = '';
+  var duration = 0;
+  var type = 'video';
+  var resolutions = [];
+  var images = [];
+
+  var titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  if (titleMatch) title = titleMatch[1].trim();
+
+  var ogTitle = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/i);
+  if (ogTitle) title = ogTitle[1];
+
+  var ogImage = html.match(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"/i);
+  if (ogImage) cover = ogImage[1];
+
+  var ogDesc = html.match(/<meta[^>]+property="og:description"[^>]+content="([^"]+)"/i);
+  if (ogDesc && !title) title = ogDesc[1];
+
+  var ogVideo = html.match(/<meta[^>]+property="og:video:url"[^>]+content="([^"]+)"/i);
+  if (!ogVideo) ogVideo = html.match(/<meta[^>]+property="og:video"[^>]+content="([^"]+)"/i);
+
+  var scripts = html.match(/<script[^>]*>[\s\S]*?<\/script>/gi) || [];
+  for (var i = 0; i < scripts.length; i++) {
+    var content = scripts[i].replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '');
+
+    if (content.indexOf('"aweme_id"') >= 0 || content.indexOf('"awemeId"') >= 0) {
+      try {
+        var match = content.match(/\{[\s\S]*"aweme_id"[\s\S]*\}/);
+        if (!match) match = content.match(/\{[\s\S]*"awemeId"[\s\S]*\}/);
+        if (match) {
+          var data = JSON.parse(match[0]);
+          var detail = data.aweme_detail || data;
+
+          title = detail.desc || title;
+
+          if (detail.author && detail.author.nickname) {
+            author = detail.author.nickname;
+          }
+
+          if (detail.duration) {
+            duration = Math.floor((detail.duration || 0) / 1000);
+          }
+
+          if (detail.images && Array.isArray(detail.images) && detail.images.length > 0) {
+            type = 'image';
+            for (var j = 0; j < detail.images.length; j++) {
+              var img = detail.images[j];
+              var urlList = img.url_list || img.urlList || [];
+              var thumbList = img.thumb_url_list || img.thumbUrlList || urlList;
+              images.push({
+                url: urlList[0] || '',
+                thumb: thumbList[0] || urlList[0] || '',
+                width: img.width || 1080,
+                height: img.height || 1920
+              });
+            }
+          }
+
+          var video = detail.video;
+          if (video) {
+            if (video.cover && video.cover.url_list && video.cover.url_list[0]) {
+              cover = video.cover.url_list[0];
+            }
+
+            if (video.duration) {
+              duration = Math.floor(video.duration / 1000);
+            }
+
+            var playAddr = video.play_addr;
+            if (playAddr && playAddr.url_list && playAddr.url_list[0]) {
+              resolutions.push({
+                label: (playAddr.height || 720) >= 1080 ? '1080p' : (playAddr.height || 720) >= 720 ? '720p' : '480p',
+                url: playAddr.url_list[0],
+                width: playAddr.width || 720,
+                height: playAddr.height || 1280
+              });
+            }
+
+            var bitRates = video.bit_rate || [];
+            for (var k = 0; k < bitRates.length; k++) {
+              var br = bitRates[k];
+              var brAddr = br.play_addr;
+              if (brAddr && brAddr.url_list && brAddr.url_list[0]) {
+                var h = brAddr.height || br.height || 0;
+                var label = h >= 1080 ? '1080p' : h >= 720 ? '720p' : h >= 480 ? '480p' : '标清';
+                resolutions.push({
+                  label: label,
+                  url: brAddr.url_list[0],
+                  width: brAddr.width || h || 1080,
+                  height: h || 1920
+                });
+              }
+            }
+
+            if (resolutions.length === 0) {
+              var dlAddr = video.download_addr;
+              if (dlAddr && dlAddr.url_list && dlAddr.url_list[0]) {
+                resolutions.push({
+                  label: '高清',
+                  url: dlAddr.url_list[0],
+                  width: dlAddr.width || 1080,
+                  height: dlAddr.height || 1920
+                });
+              }
+            }
+          }
+
+          if (ogVideo && resolutions.length === 0) {
+            resolutions.push({
+              label: '高清',
+              url: ogVideo[1],
+              width: 1080,
+              height: 1920
+            });
+          }
+
+          break;
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (resolutions.length === 0 && ogVideo) {
+    resolutions.push({
+      label: '高清',
+      url: ogVideo[1],
+      width: 1080,
+      height: 1920
+    });
+  }
+
+  if (type === 'image' && images.length === 0 && cover) {
+    images.push({
+      url: cover,
+      thumb: cover,
+      width: 1080,
+      height: 1920
+    });
+  }
+
+  return {
+    type: type,
+    title: title || '抖音' + (type === 'image' ? '图集' : '视频'),
+    author: author || '',
+    cover: cover || '',
+    duration: duration,
+    resolutions: resolutions,
+    images: images
+  };
+}
+
+function handleParse() {
+  if (!state.inputUrl.trim()) return;
+
+  state.isLoading = true;
+  state.error = null;
+  state.parseResult = null;
+  state.selectedResolution = null;
+  state.selectedImages = [];
+  render();
+
+  var url = state.inputUrl.trim();
+
+  if (!isValidDouyinUrl(url)) {
+    state.isLoading = false;
+    state.error = '请输入有效的抖音分享链接（如 v.douyin.com/xxx 或 www.douyin.com/xxx）';
+    render();
+    return;
+  }
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36');
+  xhr.timeout = 15000;
+
+  xhr.onload = function() {
+    state.isLoading = false;
+
+    if (xhr.status >= 200 && xhr.status < 400) {
+      try {
+        var data = extractDouyinData(xhr.responseText);
+
+        if (data.type === 'image') {
+          state.parseResult = {
+            type: 'image',
+            title: data.title,
+            author: data.author,
+            images: data.images
+          };
+        } else {
+          state.parseResult = {
+            type: 'video',
+            title: data.title,
+            cover: data.cover,
+            duration: data.duration,
+            author: data.author,
+            resolutions: data.resolutions.length > 0 ? data.resolutions : [
+              { label: '480p', url: '', width: 480, height: 854 },
+              { label: '720p', url: '', width: 720, height: 1280 },
+            ]
+          };
+          state.selectedResolution = state.parseResult.resolutions[0] ? state.parseResult.resolutions[0].label : null;
+        }
+
+        nativeToast('解析成功');
+      } catch (e) {
+        state.error = '解析失败：' + e.message;
+      }
+    } else {
+      state.error = '请求失败（状态码：' + xhr.status + '），请检查链接是否正确';
+    }
+
+    render();
+  };
+
+  xhr.onerror = function() {
+    state.isLoading = false;
+    state.error = '网络请求失败，请检查网络连接';
+    render();
+  };
+
+  xhr.ontimeout = function() {
+    state.isLoading = false;
+    state.error = '请求超时，请稍后重试';
+    render();
+  };
+
+  xhr.send();
+}
+
+function handleVideoDownload() {
+  var data = state.parseResult;
+  if (!data || data.type !== 'video') return;
+
+  var sel = data.resolutions.find(function(r) { return r.label === state.selectedResolution; });
+  if (!sel || !sel.url) {
+    nativeToast('未找到可下载的视频地址');
+    return;
+  }
+
+  var filename = (data.title || 'douyin_video') + '_' + sel.label + '.mp4';
+  filename = filename.replace(/[\\/:*?"<>|]/g, '_');
+
+  if (nativeDownload(sel.url, filename, 'video/mp4')) {
+    nativeToast('开始下载: ' + filename);
+  } else {
+    nativeToast('下载功能需要原生支持');
+  }
+}
+
+function handleSingleImageDownload(idx) {
+  var data = state.parseResult;
+  if (!data || data.type !== 'image' || !data.images[idx]) return;
+
+  state.downloadingIndex = idx;
+  render();
+
+  var img = data.images[idx];
+  var ext = img.url.indexOf('.webp') >= 0 ? 'webp' : 'jpg';
+  var filename = (data.title || 'douyin_image') + '_' + (idx + 1) + '.' + ext;
+  filename = filename.replace(/[\\/:*?"<>|]/g, '_');
+
+  if (nativeDownload(img.url, filename, 'image/' + (ext === 'webp' ? 'webp' : 'jpeg'))) {
+    nativeToast('开始下载图片 ' + (idx + 1));
+  } else {
+    nativeToast('下载功能需要原生支持');
+  }
+
+  setTimeout(function() {
+    state.downloadingIndex = -1;
+    render();
+  }, 1500);
+}
+
+function handleBatchImageDownload() {
+  var data = state.parseResult;
+  if (!data || data.type !== 'image' || state.selectedImages.length === 0) return;
+
+  state.downloadingAll = true;
+  render();
+
+  var successCount = 0;
+  for (var i = 0; i < state.selectedImages.length; i++) {
+    var idx = state.selectedImages[i];
+    var img = data.images[idx];
+    if (!img) continue;
+
+    var ext = img.url.indexOf('.webp') >= 0 ? 'webp' : 'jpg';
+    var filename = (data.title || 'douyin_image') + '_' + (idx + 1) + '.' + ext;
+    filename = filename.replace(/[\\/:*?"<>|]/g, '_');
+
+    if (nativeDownload(img.url, filename, 'image/' + (ext === 'webp' ? 'webp' : 'jpeg'))) {
+      successCount++;
+    }
+  }
+
+  nativeToast('已添加 ' + successCount + '/' + state.selectedImages.length + ' 个下载任务');
+
+  state.downloadingAll = false;
+  state.selectedImages = [];
+  render();
+}
+
+function init() {
+  render();
+}
+
+init();
+</script>
+</body>
+</html>

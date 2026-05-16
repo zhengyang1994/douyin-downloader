@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">douyin.com</domain>
+        <domain includeSubdomains="true">iesdouyin.com</domain>
+        <domain includeSubdomains="true">snssdk.com</domain>
+        <domain includeSubdomains="true">bytecdn.cn</domain>
+        <domain includeSubdomains="true">byteimg.com</domain>
+        <domain includeSubdomains="true">pstatp.com</domain>
+        <domain includeSubdomains="true">douyincdn.com</domain>
+    </domain-config>
+</network-security-config>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0D0D0D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>抖音下载器</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  background: #0D0D0D;
+  color: #fff;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: rgba(255,0,80,0.3); color: #fff; }
+
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+  min-height: 100dvh;
+}
+
+.header {
+  text-align: center;
+  padding: 32px 20px 20px;
+}
+.header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,0,80,0.15), rgba(0,242,234,0.15));
+  border: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 12px;
+}
+.header-icon svg { width: 24px; height: 24px; }
+.header h1 {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #FF0050, #FF0050 40%, #00F2EA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+.header p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  margin-top: 4px;
+  letter-spacing: 2px;
+}
+.header-line {
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, #FF0050, #00F2EA);
+  border-radius: 1px;
+  margin: 12px auto 0;
+  opacity: 0.6;
+}
+
+.url-section { padding: 0 16px; }
+.url-wrapper {
+  position: relative;
+}
+.url-glow {
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(255,0,80,0.25), rgba(0,242,234,0.25));
+  border-radius: 16px;
+  filter: blur(8px);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.url-wrapper:focus-within .url-glow { opacity: 0.8; }
+.url-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #0D0D0D;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.url-wrapper:focus-within .url-input-wrap { border-color: rgba(255,0,80,0.4); }
+.url-input-wrap input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  padding: 14px 12px;
+  outline: none;
+}
+.url-input-wrap input::placeholder { color: rgba(255,255,255,0.2); }
+.url-input-wrap input:disabled { opacity: 0.5; }
+.btn-paste {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #FF0050;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  margin-right: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.btn-paste:hover { color: #00F2EA; }
+.btn-clear {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.2);
+  padding: 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.btn-clear:hover { color: rgba(255,255,255,0.5); }
+
+.btn-parse-wrap { padding: 12px 16px 0; }
+.btn-parse {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #FF0050, #CC0040);
+  box-shadow: 0 0 24px rgba(255,0,80,0.35), 0 0 48px rgba(255,0,80,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-parse:active { transform: scale(0.98); }
+.btn-parse:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-parse .spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-box {
+  margin: 12px 16px 0;
+  padding: 12px 16px;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: fadeSlideIn 0.3s ease;
+}
+.error-box svg { width: 18px; height: 18px; color: #f87171; flex-shrink: 0; margin-top: 1px; }
+.error-box p { font-size: 13px; color: #fca5a5; line-height: 1.5; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-section { animation: fadeSlideIn 0.4s ease; }
+.result-card {
+  margin: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.video-cover {
+  position: relative;
+  aspect-ratio: 16/9;
+  background: rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+.video-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.video-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+}
+.video-cover .play-icon {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.video-cover .duration {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.result-info { padding: 16px; }
+.result-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+}
+.result-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.res-section { margin-top: 16px; }
+.res-section .res-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.res-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.res-chip {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.45);
+  transition: all 0.2s;
+}
+.res-chip:hover { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+.res-chip.active {
+  background: linear-gradient(135deg, rgba(255,0,80,0.15), rgba(255,0,80,0.05));
+  border-color: rgba(255,0,80,0.35);
+  color: #FF0050;
+  box-shadow: 0 0 16px rgba(255,0,80,0.15);
+}
+.res-chip .res-size {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.25);
+  margin-top: 2px;
+}
+.res-chip.active .res-size { color: rgba(255,0,80,0.6); }
+
+.btn-download {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  color: #0D0D0D;
+  background: linear-gradient(135deg, #00F2EA, #00C0BA);
+  box-shadow: 0 0 24px rgba(0,242,234,0.35), 0 0 48px rgba(0,242,234,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.btn-download:active { transform: scale(0.98); }
+.btn-download:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.progress-bar {
+  margin-top: 12px;
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00F2EA, #FF0050);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.image-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; }
+@media(min-width:480px) { .image-grid { grid-template-columns: repeat(3, 1fr); } }
+.image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.image-item:active img { transform: scale(1.05); }
+.image-item .check-mark {
+  display: none;
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #FF0050;
+  box-shadow: 0 0 12px rgba(255,0,80,0.5);
+  align-items: center;
+  justify-content: center;
+}
+.image-item.selected .check-mark { display: flex; }
+.image-item .img-dl-btn {
+  position: absolute;
+  bottom: 8px; right: 8px;
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+}
+.image-item:active .img-dl-btn,
+.image-item:hover .img-dl-btn { opacity: 1; }
+.image-item .img-dl-btn:active { background: rgba(255,0,80,0.6); color: #fff; }
+
+.img-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.btn-img-dl {
+  flex: 1;
+  padding: 13px;
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  color: #0D0D0D;
+  background: linear-gradient(135deg, #00F2EA, #00C0BA);
+  box-shadow: 0 0 24px rgba(0,242,234,0.35), 0 0 48px rgba(0,242,234,0.15);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-img-dl:active { transform: scale(0.98); }
+.btn-img-dl:disabled { opacity: 0.3; box-shadow: none; cursor: not-allowed; transform: none; }
+.btn-select-all {
+  padding: 13px 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-select-all:hover { border-color: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  opacity: 0.25;
+}
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 12px; }
+
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 12px 20px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  backdrop-filter: blur(16px);
+  animation: toastIn 0.3s ease;
+  pointer-events: none;
+}
+.toast.success {
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.25);
+  color: #6ee7b7;
+}
+.toast.error {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #fca5a5;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+const DEMO_VIDEO_DATA = {
+  type: 'video',
+  title: '超美的日落时分🌅 | 每一帧都是壁纸',
+  cover: 'https://via.placeholder.com/720x1280/1a1a2e/e94560?text=%F0%9F%8C%85+Douyin+Video',
+  duration: 42,
+  author: '@旅行摄影师小王',
+  resolutions: [
+    { label: '480p', url: 'demo', width: 480, height: 854 },
+    { label: '720p', url: 'demo', width: 720, height: 1280 },
+    { label: '1080p', url: 'demo', width: 1080, height: 1920 },
+  ]
+};
+
+const DEMO_IMAGE_DATA = {
+  type: 'image',
+  title: '今日穿搭分享👗 | 春日出街Look',
+  author: '@时尚达人Lily',
+  images: [
+    { url: 'demo', thumb: 'https://via.placeholder.com/400x400/2d1b69/e94560?text=Look+1', width: 1080, height: 1920 },
+    { url: 'demo', thumb: 'https://via.placeholder.com/400x400/1b2a4a/00f2ea?text=Look+2', width: 1080, height: 1920 },
+    { url: 'demo', thumb: 'https://via.placeholder.com/400x400/16213e/e94560?text=Look+3', width: 1080, height: 1920 },
+    { url: 'demo', thumb: 'https://via.placeholder.com/400x400/0f3460/00f2ea?text=Look+4', width: 1080, height: 1920 },
+  ]
+};
+
+const ICONS = {
+  logo: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FF0050" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  paste: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>',
+  x: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  zap: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  alert: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
+  play: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="1"><polygon points="5 3 19 12 5 21 5 3"/></svg>',
+  user: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  clock: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  download: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+  image: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
+  check: '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  dlSmall: '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+  arrowDown: '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
+  success: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  error: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>',
+};
+
+function formatDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${String(secs).padStart(2, '0')}`;
+}
+
+const state = {
+  inputUrl: '',
+  isLoading: false,
+  parseResult: null,
+  error: null,
+  selectedResolution: null,
+  downloadProgress: 0,
+  selectedImages: new Set(),
+  downloadingIndex: null,
+  downloadingAll: false,
+};
+
+function render() {
+  const app = document.getElementById('app');
+  const r = state.parseResult;
+
+  app.innerHTML = `
+    <div class="header">
+      <div class="header-icon">${ICONS.logo}</div>
+      <h1>抖音下载器</h1>
+      <p>粘贴链接，一键下载</p>
+      <div class="header-line"></div>
+    </div>
+
+    <div class="url-section">
+      <div class="url-wrapper">
+        <div class="url-glow"></div>
+        <div class="url-input-wrap">
+          <input
+            type="text"
+            id="urlInput"
+            value="${escapeHtml(state.inputUrl)}"
+            placeholder="在此粘贴抖音分享链接..."
+            ${state.isLoading ? 'disabled' : ''}
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          ${state.inputUrl ? `<button class="btn-clear" id="btnClear">${ICONS.x}</button>` : ''}
+          <button class="btn-paste" id="btnPaste">${ICONS.paste} 粘贴</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-parse-wrap">
+      <button class="btn-parse" id="btnParse" ${state.isLoading || !state.inputUrl.trim() ? 'disabled' : ''}>
+        ${state.isLoading
+          ? '<span class="spinner"></span> 解析中...'
+          : `${ICONS.zap} 解析链接`}
+      </button>
+    </div>
+
+    ${state.error ? `
+      <div class="error-box">
+        ${ICONS.alert}
+        <p>${escapeHtml(state.error)}</p>
+      </div>
+    ` : ''}
+
+    ${r && r.type === 'video' ? renderVideoResult(r) : ''}
+    ${r && r.type === 'image' ? renderImageResult(r) : ''}
+
+    ${!r && !state.error ? `
+      <div class="empty-state">
+        ${ICONS.arrowDown}
+        <p>支持抖音视频和图集下载</p>
+      </div>
+    ` : ''}
+
+    <div id="toastContainer"></div>
+  `;
+
+  bindEvents();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderVideoResult(data) {
+  const sel = state.selectedResolution;
+  return `
+    <div class="result-section">
+      <div class="result-card">
+        <div class="video-cover">
+          <img src="${escapeHtml(data.cover)}" alt="" onerror="this.style.display='none'" />
+          <div class="video-cover-overlay"></div>
+          <div class="play-icon">${ICONS.play}</div>
+          <div class="duration">${formatDuration(data.duration)}</div>
+        </div>
+        <div class="result-info">
+          <div class="result-title">${escapeHtml(data.title)}</div>
+          <div class="result-meta">
+            <span>${ICONS.user} ${escapeHtml(data.author)}</span>
+            <span>${ICONS.clock} ${formatDuration(data.duration)}</span>
+          </div>
+
+          <div class="res-section">
+            <div class="res-label">选择分辨率</div>
+            <div class="res-chips">
+              ${data.resolutions.map(r => `
+                <div class="res-chip ${sel === r.label ? 'active' : ''}" data-res="${r.label}">
+                  ${r.label}
+                  <span class="res-size">${r.width}x${r.height}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <button class="btn-download" id="btnVideoDownload"
+            ${state.downloadProgress > 0 ? 'disabled' : ''}>
+            ${ICONS.download}
+            ${state.downloadProgress > 0 ? `下载中 ${state.downloadProgress}%` : '下载视频'}
+          </button>
+
+          ${state.downloadProgress > 0 ? `
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${state.downloadProgress}%"></div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderImageResult(data) {
+  return `
+    <div class="result-section">
+      <div class="result-card">
+        <div class="result-info">
+          <div class="result-title">${escapeHtml(data.title)}</div>
+          <div class="result-meta">
+            <span>${ICONS.user} ${escapeHtml(data.author)}</span>
+          </div>
+
+          <div class="image-grid">
+            ${data.images.map((img, i) => `
+              <div class="image-item ${state.selectedImages.has(i) ? 'selected' : ''}" data-img-idx="${i}">
+                <img src="${escapeHtml(img.thumb)}" alt="" loading="lazy"
+                  onerror="this.parentElement.querySelector('.img-error').style.display='flex';this.style.display='none'" />
+                <div class="img-error" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:rgba(255,255,255,0.15)">${ICONS.image}</div>
+                <div class="check-mark">${ICONS.check}</div>
+                <button class="img-dl-btn" data-dl-idx="${i}" ${state.downloadingIndex === i ? 'disabled' : ''}>
+                  ${state.downloadingIndex === i
+                    ? '<span style="width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;"></span>'
+                    : ICONS.dlSmall}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="img-actions">
+            <button class="btn-img-dl" id="btnImgDownload"
+              ${state.selectedImages.size === 0 || state.downloadingAll ? 'disabled' : ''}>
+              ${ICONS.download}
+              ${state.downloadingAll
+                ? '下载中...'
+                : state.selectedImages.size > 0
+                  ? `下载选中 (${state.selectedImages.size})`
+                  : '选择图片下载'}
+            </button>
+            <button class="btn-select-all" id="btnSelectAll">
+              ${ICONS.image} 全选
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function bindEvents() {
+  const urlInput = document.getElementById('urlInput');
+  const btnParse = document.getElementById('btnParse');
+  const btnPaste = document.getElementById('btnPaste');
+  const btnClear = document.getElementById('btnClear');
+
+  urlInput?.addEventListener('input', (e) => {
+    state.inputUrl = e.target.value;
+    render();
+  });
+
+  btnPaste?.addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      state.inputUrl = text;
+      render();
+      setTimeout(() => {
+        document.getElementById('urlInput')?.focus();
+      }, 50);
+    } catch {
+      document.getElementById('urlInput')?.focus();
+    }
+  });
+
+  btnClear?.addEventListener('click', () => {
+    state.inputUrl = '';
+    render();
+    document.getElementById('urlInput')?.focus();
+  });
+
+  btnParse?.addEventListener('click', handleParse);
+
+  document.querySelectorAll('.res-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      state.selectedResolution = chip.dataset.res;
+      render();
+    });
+  });
+
+  document.getElementById('btnVideoDownload')?.addEventListener('click', handleVideoDownload);
+
+  document.querySelectorAll('.image-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.img-dl-btn')) return;
+      const idx = parseInt(item.dataset.imgIdx);
+      if (state.selectedImages.has(idx)) {
+        state.selectedImages.delete(idx);
+      } else {
+        state.selectedImages.add(idx);
+      }
+      render();
+    });
+  });
+
+  document.querySelectorAll('.img-dl-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.dlIdx);
+      await handleSingleImageDownload(idx);
+    });
+  });
+
+  document.getElementById('btnImgDownload')?.addEventListener('click', handleBatchImageDownload);
+  document.getElementById('btnSelectAll')?.addEventListener('click', () => {
+    const data = state.parseResult;
+    if (data?.type === 'image') {
+      if (state.selectedImages.size === data.images.length) {
+        state.selectedImages.clear();
+      } else {
+        state.selectedImages = new Set(data.images.map((_, i) => i));
+      }
+    }
+    render();
+  });
+
+  document.getElementById('urlInput')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && state.inputUrl.trim() && !state.isLoading) {
+      handleParse();
+    }
+  });
+}
+
+function isValidDouyinUrl(url) {
+  return /https?:\/\/(v\.douyin\.com|www\.douyin\.com|www\.iesdouyin\.com)\/\S+/i.test(url);
+}
+
+async function handleParse() {
+  if (!state.inputUrl.trim()) return;
+
+  state.isLoading = true;
+  state.error = null;
+  state.parseResult = null;
+  state.selectedResolution = null;
+  state.selectedImages = new Set();
+  render();
+
+  await new Promise(r => setTimeout(r, 1200));
+
+  if (!isValidDouyinUrl(state.inputUrl.trim())) {
+    state.isLoading = false;
+    state.error = '请输入有效的抖音分享链接（如 v.douyin.com/xxx 或 www.douyin.com/xxx）';
+    render();
+    return;
+  }
+
+  const url = state.inputUrl.trim().toLowerCase();
+  const isImage = url.includes('photo') || url.includes('image') || url.includes('note');
+
+  state.isLoading = false;
+  state.parseResult = isImage ? { ...DEMO_IMAGE_DATA } : { ...DEMO_VIDEO_DATA };
+
+  if (state.parseResult.type === 'video') {
+    state.selectedResolution = state.parseResult.resolutions[1]?.label || state.parseResult.resolutions[0]?.label;
+  }
+
+  render();
+}
+
+async function handleVideoDownload() {
+  state.downloadProgress = 0;
+  render();
+
+  for (let i = 0; i <= 100; i += Math.floor(Math.random() * 15) + 5) {
+    await new Promise(r => setTimeout(r, 200));
+    state.downloadProgress = Math.min(i, 100);
+    render();
+  }
+
+  state.downloadProgress = 0;
+  showToast('下载完成！视频已保存到手机', 'success');
+  render();
+}
+
+async function handleSingleImageDownload(idx) {
+  state.downloadingIndex = idx;
+  render();
+
+  await new Promise(r => setTimeout(r, 1000));
+
+  state.downloadingIndex = null;
+  showToast('图片已保存到手机', 'success');
+  render();
+}
+
+async function handleBatchImageDownload() {
+  if (state.selectedImages.size === 0) return;
+
+  state.downloadingAll = true;
+  render();
+
+  let success = 0;
+  for (const idx of state.selectedImages) {
+    await new Promise(r => setTimeout(r, 600));
+    success++;
+  }
+
+  state.downloadingAll = false;
+  showToast(`已保存 ${success}/${state.selectedImages.size} 张图片`, 'success');
+  render();
+}
+
+function showToast(message, type) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `${type === 'success' ? ICONS.success : ICONS.error} ${message}`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-12px)';
+    toast.style.transition = 'all 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+function init() {
+  state.selectedResolution = DEMO_VIDEO_DATA.resolutions[1].label;
+  render();
+}
+
+init();
+</script>
+</body>
+</html>

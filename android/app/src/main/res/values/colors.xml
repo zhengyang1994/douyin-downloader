@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_black">#FF0D0D0D</color>
+    <color name="brand_pink">#FFFF0050</color>
+    <color name="brand_cyan">#FF00F2EA</color>
+    <color name="brand_pink_dark">#FFCC0040</color>
+    <color name="brand_cyan_dark">#FF00C0BA</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_40">#66FFFFFF</color>
+</resources>
