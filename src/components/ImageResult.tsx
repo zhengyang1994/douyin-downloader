@@ -3,6 +3,7 @@ import { Download, Image as ImageIcon, User, Check } from 'lucide-react'
 import type { ImageResource } from '../../shared/types'
 import { useAppStore } from '../store/useAppStore'
 import { downloadFile } from '../utils/api'
+import { sanitizeFilename } from '../utils/helpers'
 
 interface ImageResultProps {
   data: ImageResource
@@ -33,7 +34,7 @@ export default function ImageResult({ data }: ImageResultProps) {
     try {
       setDownloadingIndex(index)
       const ext = img.url.includes('.webp') ? 'webp' : 'jpg'
-      const filename = `${data.title || 'douyin_image'}_${index + 1}.${ext}`
+      const filename = `${sanitizeFilename(data.title) || 'douyin_image'}_${index + 1}.${ext}`
       await downloadFile(img.url, filename)
       showToast('图片已保存到手机', 'success')
     } catch {
@@ -56,7 +57,7 @@ export default function ImageResult({ data }: ImageResultProps) {
 
         try {
           const ext = img.url.includes('.webp') ? 'webp' : 'jpg'
-          const filename = `${data.title || 'douyin_image'}_${index + 1}.${ext}`
+          const filename = `${sanitizeFilename(data.title) || 'douyin_image'}_${index + 1}.${ext}`
           await downloadFile(img.url, filename)
           successCount++
         } catch {

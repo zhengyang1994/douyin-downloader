@@ -45,11 +45,17 @@ class WebAppInterface(private val context: Context, private val activity: MainAc
             }
 
             try {
+                val safeName = fileName
+                    .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                    .replace(Regex("[\\x00-\\x1f]"), "")
+                    .trim()
+                    .take(100)
+                    .ifEmpty { "download" }
                 val request = DownloadManager.Request(Uri.parse(url))
-                    .setTitle(fileName)
+                    .setTitle(safeName)
                     .setDescription("正在下载...")
                     .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeName)
                     .setAllowedOverMetered(true)
                     .setAllowedOverRoaming(true)
 
@@ -60,8 +66,8 @@ class WebAppInterface(private val context: Context, private val activity: MainAc
                 val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                 val downloadId = dm.enqueue(request)
 
-                activity.registerDownloadReceiver(downloadId, fileName)
-                showToast("开始下载: $fileName")
+                activity.registerDownloadReceiver(downloadId, safeName)
+                showToast("开始下载: $safeName")
             } catch (e: Exception) {
                 showToast("下载失败: ${e.message}")
             }

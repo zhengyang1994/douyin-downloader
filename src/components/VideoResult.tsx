@@ -2,6 +2,7 @@ import { Download, Clock, User, Play } from 'lucide-react'
 import type { VideoResource } from '../../shared/types'
 import { useAppStore } from '../store/useAppStore'
 import { downloadFile } from '../utils/api'
+import { sanitizeFilename } from '../utils/helpers'
 import ResolutionSelector from './ResolutionSelector'
 
 interface VideoResultProps {
@@ -28,7 +29,7 @@ export default function VideoResult({ data }: VideoResultProps) {
 
     try {
       setDownloadProgress(0)
-      const filename = `${data.title || 'douyin_video'}_${selectedRes.label}.mp4`
+      const filename = `${sanitizeFilename(data.title) || 'douyin_video'}_${selectedRes.label}.mp4`
       await downloadFile(selectedRes.url, filename, (progress) => {
         setDownloadProgress(progress)
       })

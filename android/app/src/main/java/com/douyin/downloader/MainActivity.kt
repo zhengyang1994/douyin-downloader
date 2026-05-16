@@ -161,11 +161,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun triggerDownload(url: String, fileName: String) {
         try {
+            val safeName = fileName
+                .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                .replace(Regex("[\\x00-\\x1f]"), "")
+                .trim()
+                .take(100)
+                .ifEmpty { "download" }
             val request = DownloadManager.Request(Uri.parse(url))
-                .setTitle(fileName)
+                .setTitle(safeName)
                 .setDescription("抖音下载器 - 正在下载")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "DouyinDownloader/$fileName")
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "DouyinDownloader/$safeName")
                 .setAllowedOverMetered(true)
                 .setAllowedOverRoaming(true)
 

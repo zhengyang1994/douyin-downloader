@@ -86,3 +86,9 @@ Thumbs.db
 # Temporary files
 *.bak
 *.tmp
+
+# Claude
+.claude/
+
+# Build artifacts
+*.zip
