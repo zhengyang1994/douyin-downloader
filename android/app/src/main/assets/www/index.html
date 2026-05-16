@@ -909,7 +909,9 @@ function handleParse() {
   state.selectedImages = [];
   render();
 
-  var url = state.inputUrl.trim();
+  // Extract clean URL from pasted text (e.g. removes "复制打开抖音..." wrapper)
+  var urlMatch = state.inputUrl.trim().match(/https?:\/\/(v\.douyin\.com|www\.douyin\.com|www\.iesdouyin\.com)\/\S+/i);
+  var url = urlMatch ? urlMatch[0] : state.inputUrl.trim();
 
   if (!isValidDouyinUrl(url)) {
     state.isLoading = false;
