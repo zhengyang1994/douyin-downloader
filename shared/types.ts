@@ -54,6 +54,7 @@ export interface DownloadItem {
   status: DownloadStatus
   progress: number
   errorMessage?: string
+  filePath?: string
 }
 
 export interface AppState {

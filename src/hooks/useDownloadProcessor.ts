@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import { downloadFile } from '../utils/api'
+import { hasNativeBridge, nativeDownloadToFile } from '../utils/nativeBridge'
 
 export function useDownloadProcessor() {
   const processingRef = useRef(false)
@@ -28,13 +29,30 @@ export function useDownloadProcessor() {
         store.updateDownloadItem(item.id, { status: 'downloading' })
 
         try {
-          await downloadFile(item.url, item.filename, (p) => {
-            useAppStore.getState().updateDownloadItem(item.id, { progress: p })
-          })
-          useAppStore.getState().updateDownloadItem(item.id, {
-            status: 'completed',
-            progress: 100,
-          })
+          if (hasNativeBridge()) {
+            const filePath = await new Promise<string>((resolve, reject) => {
+              nativeDownloadToFile(item.url, item.filename, {
+                onProgress: (p) => {
+                  useAppStore.getState().updateDownloadItem(item.id, { progress: p })
+                },
+                onComplete: (path) => resolve(path),
+                onError: (err) => reject(new Error(err)),
+              })
+            })
+            useAppStore.getState().updateDownloadItem(item.id, {
+              status: 'completed',
+              progress: 100,
+              filePath,
+            })
+          } else {
+            await downloadFile(item.url, item.filename, (p) => {
+              useAppStore.getState().updateDownloadItem(item.id, { progress: p })
+            })
+            useAppStore.getState().updateDownloadItem(item.id, {
+              status: 'completed',
+              progress: 100,
+            })
+          }
           useAppStore.getState().showToast(`${item.filename} 下载完成`, 'success')
         } catch (err) {
           useAppStore.getState().updateDownloadItem(item.id, {
@@ -46,7 +64,6 @@ export function useDownloadProcessor() {
       }
     } finally {
       processingRef.current = false
-      // Check if new items were added while processing, pick them up
       const store = useAppStore.getState()
       if (store.downloadItems.some((i) => i.status === 'queued')) {
         processNext()

@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
@@ -71,6 +72,118 @@ class WebAppInterface(private val context: Context, private val activity: MainAc
             } catch (e: Exception) {
                 showToast("下载失败: ${e.message}")
             }
+        }
+    }
+
+    @JavascriptInterface
+    fun downloadToFile(url: String, fileName: String, callbackId: String) {
+        Thread {
+            try {
+                val dir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "DouyinDownloader")
+                } else {
+                    File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "DouyinDownloader")
+                }
+                if (!dir.exists()) dir.mkdirs()
+
+                val safeName = fileName
+                    .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                    .replace(Regex("[\\x00-\\x1f]"), "")
+                    .trim()
+                    .take(100)
+                    .ifEmpty { "download" }
+
+                val file = File(dir, safeName)
+
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 30000
+                conn.readTimeout = 30000
+                conn.instanceFollowRedirects = true
+                conn.setRequestProperty(
+                    "User-Agent",
+                    "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                )
+                conn.setRequestProperty("Referer", "https://www.douyin.com/")
+                conn.connect()
+
+                val total = conn.contentLength
+                val input = conn.inputStream
+                val output = FileOutputStream(file)
+                val buffer = ByteArray(8192)
+                var bytesRead: Int
+                var downloaded: Long = 0
+                var lastReported = -1
+
+                while (input.read(buffer).also { bytesRead = it } != -1) {
+                    output.write(buffer, 0, bytesRead)
+                    downloaded += bytesRead
+                    if (total > 0) {
+                        val pct = (downloaded * 100 / total).toInt()
+                        if (pct != lastReported) {
+                            lastReported = pct
+                            val finalPct = pct
+                            activity.runOnUiThread {
+                                activity.evaluateJavascript("window.__downloadProgress('$callbackId', $finalPct)")
+                            }
+                        }
+                    }
+                }
+                output.close()
+                input.close()
+                conn.disconnect()
+
+                // Make file visible to media apps
+                val scanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+                scanIntent.data = Uri.fromFile(file)
+                context.sendBroadcast(scanIntent)
+
+                val escapedPath = file.absolutePath.replace("\\", "\\\\").replace("'", "\\'")
+                activity.runOnUiThread {
+                    activity.evaluateJavascript("window.__downloadComplete('$callbackId', '$escapedPath')")
+                }
+            } catch (e: Exception) {
+                val msg = (e.message ?: "下载失败").replace("'", "\\'")
+                activity.runOnUiThread {
+                    activity.evaluateJavascript("window.__downloadError('$callbackId', '$msg')")
+                }
+            }
+        }.start()
+    }
+
+    @JavascriptInterface
+    fun openFile(filePath: String) {
+        try {
+            val file = File(filePath)
+            if (!file.exists()) {
+                showToast("文件不存在")
+                return
+            }
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            val mimeType = when {
+                file.name.endsWith(".mp4") -> "video/mp4"
+                file.name.endsWith(".webp") -> "image/webp"
+                file.name.endsWith(".jpg") || file.name.endsWith(".jpeg") -> "image/jpeg"
+                file.name.endsWith(".png") -> "image/png"
+                file.name.endsWith(".gif") -> "image/gif"
+                else -> "*/*"
+            }
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            showToast("无法打开文件: ${e.message}")
+        }
+    }
+
+    @JavascriptInterface
+    fun deleteDownloadedFile(filePath: String): Boolean {
+        return try {
+            File(filePath).delete()
+        } catch (_: Exception) {
+            false
         }
     }
 

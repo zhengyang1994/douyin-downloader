@@ -9,8 +9,11 @@ import {
   RotateCcw,
   X,
   ChevronLeft,
+  FolderOpen,
+  Trash2,
 } from 'lucide-react'
 import { useAppStore } from '../store/useAppStore'
+import { nativeOpenFile, nativeDeleteFile, hasNativeBridge } from '../utils/nativeBridge'
 
 type SubTab = 'downloading' | 'completed'
 
@@ -27,6 +30,15 @@ export default function DownloadsPage() {
   const completedItems = downloadItems.filter(
     (i) => i.status === 'completed' || i.status === 'error'
   )
+
+  const handleOpen = (filePath?: string) => {
+    if (filePath) nativeOpenFile(filePath)
+  }
+
+  const handleDelete = (id: string, filePath?: string) => {
+    if (filePath) nativeDeleteFile(filePath)
+    removeDownloadItem(id)
+  }
 
   return (
     <div className="min-h-screen min-h-dvh bg-brand-black pb-24">
@@ -169,6 +181,11 @@ export default function DownloadsPage() {
                       <>
                         <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
                         <span className="text-[11px] text-emerald-400">已完成</span>
+                        {item.filePath && hasNativeBridge() && (
+                          <span className="text-[9px] text-white/20 truncate ml-1 max-w-[120px]">
+                            {item.filePath}
+                          </span>
+                        )}
                       </>
                     ) : (
                       <>
@@ -181,6 +198,14 @@ export default function DownloadsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {item.status === 'completed' && hasNativeBridge() && (
+                    <button
+                      onClick={() => handleOpen(item.filePath)}
+                      className="w-7 h-7 rounded-lg bg-brand-cyan/10 hover:bg-brand-cyan/20 flex items-center justify-center transition-colors"
+                    >
+                      <FolderOpen className="w-3.5 h-3.5 text-brand-cyan" />
+                    </button>
+                  )}
                   {item.status === 'error' && (
                     <button
                       onClick={() => retryDownload(item.id)}
@@ -190,10 +215,10 @@ export default function DownloadsPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => removeDownloadItem(item.id)}
+                    onClick={() => handleDelete(item.id, item.filePath)}
                     className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
                   >
-                    <X className="w-3.5 h-3.5 text-white/40" />
+                    <Trash2 className="w-3.5 h-3.5 text-white/40" />
                   </button>
                 </div>
               </div>
