@@ -44,21 +44,25 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_code=$(grep 'versionCode' android/app/build.gradle.kts | sed 's/.*= //')" >> $GITHUB_OUTPUT
 
+    - name: Check tag exists
+      id: check_tag
+      run: |
+        TAG="v${{ steps.version.outputs.version }}"
+        if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_tag.outputs.exists == 'false'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ steps.version.outputs.version }}
         name: v${{ steps.version.outputs.version }}
         body: |
           ## 抖音下载器 v${{ steps.version.outputs.version }}
-
-          ### 更新内容
-          - 下载队列管理：底部标签栏切换，正在下载/已完成分类
-          - 软件内下载：不再使用系统 DownloadManager
-          - 文件管理：下载完成后可直接打开、删除文件
-          - 文件名修复：自动清理非法字符，避免"文件名过长"错误
         files: android/app/build/outputs/apk/debug/app-debug.apk
-        generate_release_notes: false
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
