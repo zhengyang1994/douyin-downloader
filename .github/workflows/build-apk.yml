@@ -3,11 +3,12 @@ name: Build APK
 on:
   push:
     branches: [ main, master ]
-    tags:
-      - 'v*'
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -44,25 +45,18 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "version_code=$(grep 'versionCode' android/app/build.gradle.kts | sed 's/.*= //')" >> $GITHUB_OUTPUT
 
-    - name: Check tag exists
-      id: check_tag
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
         TAG="v${{ steps.version.outputs.version }}"
-        if git ls-remote --tags origin "$TAG" | grep -q "$TAG"; then
-          echo "exists=true" >> $GITHUB_OUTPUT
+        if gh release view "$TAG" &>/dev/null; then
+          echo "Release $TAG already exists, skipping"
         else
-          echo "exists=false" >> $GITHUB_OUTPUT
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "抖音下载器 $TAG" \
+            --generate-notes \
+            android/app/build/outputs/apk/debug/app-debug.apk
         fi
-
-    - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_tag.outputs.exists == 'false'
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v${{ steps.version.outputs.version }}
-        name: v${{ steps.version.outputs.version }}
-        body: |
-          ## 抖音下载器 v${{ steps.version.outputs.version }}
-        files: android/app/build/outputs/apk/debug/app-debug.apk
-        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
