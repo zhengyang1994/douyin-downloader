@@ -659,7 +659,13 @@ var state = {
 
 // Download tracking
 var dlIdCounter = 0;
+var _dlRenderTimer = null;
 function dlGenerateId() { return 'dl_' + (++dlIdCounter) + '_' + Date.now(); }
+
+function dlRender() {
+  if (_dlRenderTimer) clearTimeout(_dlRenderTimer);
+  _dlRenderTimer = setTimeout(function() { _dlRenderTimer = null; render(); }, 200);
+}
 
 function dlAdd(filename, url, type) {
   state.downloadItems.unshift({
@@ -683,7 +689,7 @@ function dlUpdate(id, updates) {
       break;
     }
   }
-  render();
+  dlRender();
 }
 
 function dlRemove(id) {
