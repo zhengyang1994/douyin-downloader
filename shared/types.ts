@@ -42,6 +42,8 @@ export interface ParseErrorResponse {
 
 export type ParseResponse = ParseSuccessResponse | ParseErrorResponse
 
+export type TabType = 'home' | 'downloads'
+
 export type DownloadStatus = 'queued' | 'downloading' | 'completed' | 'error'
 
 export interface DownloadItem {
@@ -60,6 +62,7 @@ export interface AppState {
   parseResult: ParseResult | null
   error: string | null
   selectedResolution: string | null
+  activeTab: TabType
   downloadItems: DownloadItem[]
   toastMessage: string | null
   toastType: 'success' | 'error' | null
@@ -68,6 +71,7 @@ export interface AppState {
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setSelectedResolution: (label: string) => void
+  setActiveTab: (tab: TabType) => void
   addToQueue: (item: { filename: string; url: string; type: 'video' | 'image' }) => void
   updateDownloadItem: (id: string, updates: Partial<DownloadItem>) => void
   removeDownloadItem: (id: string) => void

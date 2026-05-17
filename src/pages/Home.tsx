@@ -7,16 +7,29 @@ import ErrorMessage from '../components/ErrorMessage'
 import VideoResult from '../components/VideoResult'
 import ImageResult from '../components/ImageResult'
 import DownloadQueue from '../components/DownloadQueue'
+import DownloadsPage from '../components/DownloadsPage'
+import TabBar from '../components/TabBar'
 import Toast from '../components/Toast'
 
 export default function Home() {
   const parseResult = useAppStore((s) => s.parseResult)
   const error = useAppStore((s) => s.error)
+  const activeTab = useAppStore((s) => s.activeTab)
 
   useDownloadProcessor()
 
+  if (activeTab === 'downloads') {
+    return (
+      <>
+        <DownloadsPage />
+        <TabBar />
+        <Toast />
+      </>
+    )
+  }
+
   return (
-    <div className="min-h-screen min-h-dvh bg-brand-black pb-12">
+    <div className="min-h-screen min-h-dvh bg-brand-black pb-24">
       <Header />
       <UrlInput />
       <ParseButton />
@@ -59,6 +72,7 @@ export default function Home() {
         </div>
       )}
 
+      <TabBar />
       <Toast />
     </div>
   )

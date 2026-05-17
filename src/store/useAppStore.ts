@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppState, DownloadItem, ParseResult } from '../../shared/types'
+import type { AppState, DownloadItem, ParseResult, TabType } from '../../shared/types'
 import { generateId } from '../utils/helpers'
 
 export const useAppStore = create<AppState>((set) => ({
@@ -8,6 +8,7 @@ export const useAppStore = create<AppState>((set) => ({
   parseResult: null,
   error: null,
   selectedResolution: null,
+  activeTab: 'home',
   downloadItems: [],
   toastMessage: null,
   toastType: null,
@@ -17,6 +18,7 @@ export const useAppStore = create<AppState>((set) => ({
   setLoading: (loading) => set({ isLoading: loading }),
   setError: (error) => set({ error, parseResult: null }),
   setSelectedResolution: (label) => set({ selectedResolution: label }),
+  setActiveTab: (tab: TabType) => set({ activeTab: tab }),
 
   addToQueue: (item) =>
     set((state) => ({
