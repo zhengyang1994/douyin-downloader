@@ -402,6 +402,219 @@ body {
 }
 .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; }
 .empty-state p { font-size: 12px; }
+
+/* Tab Bar */
+.tab-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(13,13,13,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.tab-btn {
+  flex: 1;
+  max-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 0 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: rgba(255,255,255,0.3);
+  font-size: 10px;
+  font-weight: 500;
+  transition: color 0.2s;
+  position: relative;
+}
+.tab-btn.active { color: #00F2EA; }
+.tab-btn svg { width: 22px; height: 22px; }
+.tab-badge {
+  position: absolute;
+  top: 4px; right: 32px;
+  background: #FF0050;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(255,0,80,0.5);
+}
+
+/* Download List Page */
+.dl-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 16px 16px;
+}
+.dl-back {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.dl-back:active { background: rgba(255,255,255,0.1); }
+.dl-title { font-size: 18px; font-weight: 700; color: #fff; }
+.dl-subtabs {
+  display: flex;
+  margin: 0 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 3px;
+}
+.dl-subtab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: rgba(255,255,255,0.4);
+  transition: all 0.2s;
+}
+.dl-subtab.active {
+  background: rgba(0,242,234,0.15);
+  color: #00F2EA;
+}
+.dl-subtab .count {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 11px;
+}
+.dl-subtab .count.pink { color: #FF0050; }
+.dl-content { padding: 12px 16px; }
+.dl-empty {
+  text-align: center;
+  padding: 48px 16px;
+  opacity: 0.25;
+}
+.dl-empty svg { width: 40px; height: 40px; margin-bottom: 8px; }
+.dl-empty p { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+.dl-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  animation: fadeSlideIn 0.3s ease;
+}
+.dl-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dl-item-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dl-item-icon svg { width: 18px; height: 18px; color: rgba(255,255,255,0.4); }
+.dl-item-info { flex: 1; min-width: 0; }
+.dl-item-name { font-size: 12px; color: rgba(255,255,255,0.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-item-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 11px;
+}
+.dl-item-status .cyan { color: #00F2EA; }
+.dl-item-status .green { color: #34d399; }
+.dl-item-status .red { color: #f87171; }
+.dl-item-status .gray { color: rgba(255,255,255,0.35); }
+.dl-item-status .spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(0,242,234,0.3);
+  border-top-color: #00F2EA;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.dl-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.dl-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.dl-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00F2EA, #FF0050);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.dl-progress-pct { font-size: 11px; color: #00F2EA; font-weight: 600; min-width: 36px; text-align: right; }
+
+.dl-item-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.dl-action-btn {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.dl-action-btn:active { background: rgba(255,255,255,0.12); }
+.dl-action-btn svg { width: 14px; height: 14px; color: rgba(255,255,255,0.45); }
+.dl-action-btn.open { background: rgba(0,242,234,0.1); }
+.dl-action-btn.open svg { color: #00F2EA; }
+.dl-action-btn.open:active { background: rgba(0,242,234,0.2); }
+.dl-action-btn.danger svg { color: #f87171; }
+
+.dl-footer {
+  text-align: center;
+  padding: 12px 0 80px;
+}
+.dl-footer .dl-clear {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.2);
+  font-size: 11px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dl-footer .dl-clear:active { color: rgba(255,255,255,0.5); border-color: rgba(255,255,255,0.1); }
+
+/* Home page with padding for tab bar */
+.home-content { padding-bottom: 60px; }
 </style>
 </head>
 <body>
@@ -439,7 +652,119 @@ var state = {
   selectedImages: [],
   downloadingIndex: -1,
   downloadingAll: false,
+  activeTab: 'home',
+  downloadItems: [],
+  dlSubTab: 'downloading',
 };
+
+// Download tracking
+var dlIdCounter = 0;
+function dlGenerateId() { return 'dl_' + (++dlIdCounter) + '_' + Date.now(); }
+
+function dlAdd(filename, url, type) {
+  state.downloadItems.unshift({
+    id: dlGenerateId(),
+    filename: filename,
+    url: url,
+    type: type,
+    status: 'queued',
+    progress: 0,
+    errorMessage: null,
+    filePath: null,
+  });
+  render();
+  processDownloadQueue();
+}
+
+function dlUpdate(id, updates) {
+  for (var i = 0; i < state.downloadItems.length; i++) {
+    if (state.downloadItems[i].id === id) {
+      for (var k in updates) state.downloadItems[i][k] = updates[k];
+      break;
+    }
+  }
+  render();
+}
+
+function dlRemove(id) {
+  state.downloadItems = state.downloadItems.filter(function(i) { return i.id !== id; });
+  render();
+}
+
+function dlClearCompleted() {
+  state.downloadItems = state.downloadItems.filter(function(i) { return i.status !== 'completed'; });
+  render();
+}
+
+function dlRetry(id) {
+  dlUpdate(id, { status: 'queued', progress: 0, errorMessage: null, filePath: null });
+  processDownloadQueue();
+}
+
+var dlProcessing = false;
+function processDownloadQueue() {
+  if (dlProcessing) return;
+  dlProcessing = true;
+
+  function next() {
+    var item = null;
+    for (var i = 0; i < state.downloadItems.length; i++) {
+      if (state.downloadItems[i].status === 'queued') { item = state.downloadItems[i]; break; }
+    }
+    if (!item) { dlProcessing = false; return; }
+
+    dlUpdate(item.id, { status: 'downloading' });
+
+    var bridge = typeof AndroidBridge !== 'undefined' ? AndroidBridge :
+                 typeof window.DouyinNative !== 'undefined' ? window.DouyinNative : null;
+
+    if (bridge && bridge.downloadToFile) {
+      var cbId = 'dl_progress_' + item.id;
+      window['__dl_cb_' + cbId] = function(pct, filePath, error) {
+        if (error) {
+          dlUpdate(item.id, { status: 'error', errorMessage: error });
+          nativeToast(item.filename + ' 下载失败');
+          delete window['__dl_cb_' + cbId];
+          setTimeout(next, 300);
+        } else if (filePath) {
+          dlUpdate(item.id, { status: 'completed', progress: 100, filePath: filePath });
+          nativeToast(item.filename + ' 下载完成');
+          delete window['__dl_cb_' + cbId];
+          setTimeout(next, 300);
+        } else {
+          dlUpdate(item.id, { progress: pct });
+        }
+      };
+      bridge.downloadToFile(item.url, item.filename, cbId);
+    } else if (bridge && bridge.downloadFile) {
+      bridge.downloadFile(item.url, item.filename, '');
+      dlUpdate(item.id, { status: 'completed', progress: 100 });
+      setTimeout(next, 100);
+    } else {
+      dlUpdate(item.id, { status: 'error', errorMessage: '下载功能不可用' });
+      setTimeout(next, 100);
+    }
+  }
+  next();
+}
+
+// Progress callbacks from native bridge
+window.__downloadProgress = function(cbId, percent) {
+  var cb = window['__dl_cb_' + cbId];
+  if (cb) cb(percent, null, null);
+};
+window.__downloadComplete = function(cbId, filePath) {
+  var cb = window['__dl_cb_' + cbId];
+  if (cb) cb(null, filePath, null);
+};
+window.__downloadError = function(cbId, error) {
+  var cb = window['__dl_cb_' + cbId];
+  if (cb) cb(null, null, error);
+};
+
+function sanitizeFilename(name) {
+  return name.replace(/[\\/:*?"<>|]/g, '_').replace(/[\x00-\x1f]/g, '').trim().substring(0, 80) || 'download';
+}
 
 function hasNative() {
   return typeof window.DouyinNative !== 'undefined' || typeof window.AndroidBridge !== 'undefined';
@@ -483,9 +808,17 @@ function escapeHtml(str) {
 
 function render() {
   var app = document.getElementById('app');
+
+  if (state.activeTab === 'downloads') {
+    app.innerHTML = renderDownloadList() + renderTabBar();
+    bindDownloadEvents();
+    return;
+  }
+
   var r = state.parseResult;
 
-  app.innerHTML =
+  var homeHtml =
+    '<div class="home-content">' +
     '<div class="header">' +
       '<div class="header-icon">' + ICONS.logo + '</div>' +
       '<h1>抖音下载器</h1>' +
@@ -522,9 +855,194 @@ function render() {
 
     (!r && !state.error
       ? '<div class="empty-state">' + ICONS.arrowDown + '<p>支持抖音视频和图集下载</p></div>'
-      : '');
+      : '') +
 
+    renderDownloadBadge() +
+
+    '</div>';
+
+  app.innerHTML = homeHtml + renderTabBar();
   bindEvents();
+}
+
+function renderTabBar() {
+  var activeCount = 0;
+  for (var i = 0; i < state.downloadItems.length; i++) {
+    var s = state.downloadItems[i].status;
+    if (s === 'queued' || s === 'downloading') activeCount++;
+  }
+  var current = state.activeTab || 'home';
+  return '<div class="tab-bar">' +
+    '<button class="tab-btn' + (current === 'home' ? ' active' : '') + '" data-tab="home">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' +
+      '<span>首页</span>' +
+    '</button>' +
+    '<button class="tab-btn' + (current === 'downloads' ? ' active' : '') + '" data-tab="downloads">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' +
+      '<span>下载</span>' +
+      (activeCount > 0 ? '<span class="tab-badge">' + activeCount + '</span>' : '') +
+    '</button>' +
+  '</div>';
+}
+
+function renderDownloadBadge() {
+  var total = state.downloadItems.length;
+  if (total === 0) return '';
+  var active = 0, completed = 0;
+  for (var i = 0; i < state.downloadItems.length; i++) {
+    var s = state.downloadItems[i].status;
+    if (s === 'queued' || s === 'downloading') active++;
+    else if (s === 'completed') completed++;
+  }
+  var summary = '';
+  if (active > 0) summary += active + ' 个正在下载';
+  if (active > 0 && completed > 0) summary += ' · ';
+  if (completed > 0) summary += completed + ' 个已完成';
+  if (!summary) summary = total + ' 个任务';
+
+  return '<div style="padding:0 16px;margin-top:12px">' +
+    '<button onclick="state.activeTab=\'downloads\';render()" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background=\'rgba(255,255,255,0.05)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.03)\'">' +
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<div style="width:36px;height:36px;border-radius:10px;background:rgba(0,242,234,0.1);display:flex;align-items:center;justify-content:center">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00F2EA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' +
+        '</div>' +
+        '<div style="text-align:left">' +
+          '<div style="font-size:13px;font-weight:700;color:#fff">下载列表</div>' +
+          '<div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px">' + summary + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px">' +
+        (active > 0 ? '<span style="background:#FF0050;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px">' + active + '</span>' : '') +
+        '<span style="color:rgba(255,255,255,0.2);font-size:12px">查看 &gt;</span>' +
+      '</div>' +
+    '</button>' +
+  '</div>';
+}
+
+function renderDownloadList() {
+  var downloadingItems = [];
+  var completedItems = [];
+  for (var i = 0; i < state.downloadItems.length; i++) {
+    var s = state.downloadItems[i].status;
+    if (s === 'queued' || s === 'downloading') downloadingItems.push(state.downloadItems[i]);
+    else completedItems.push(state.downloadItems[i]);
+  }
+  var list = state.dlSubTab === 'downloading' ? downloadingItems : completedItems;
+
+  var html =
+    '<div class="dl-header">' +
+      '<button class="dl-back" onclick="state.activeTab=\'home\';render()">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
+      '</button>' +
+      '<span class="dl-title">下载管理</span>' +
+    '</div>' +
+
+    '<div class="dl-subtabs">' +
+      '<button class="dl-subtab' + (state.dlSubTab === 'downloading' ? ' active' : '') + '" onclick="state.dlSubTab=\'downloading\';render()">正在下载' +
+        (downloadingItems.length > 0 ? '<span class="count pink">' + downloadingItems.length + '</span>' : '') +
+      '</button>' +
+      '<button class="dl-subtab' + (state.dlSubTab === 'completed' ? ' active' : '') + '" onclick="state.dlSubTab=\'completed\';render()">已完成' +
+        (completedItems.length > 0 ? '<span class="count">' + completedItems.length + '</span>' : '') +
+      '</button>' +
+    '</div>' +
+
+    '<div class="dl-content">';
+
+  if (list.length === 0) {
+    html += '<div class="dl-empty">' +
+      (state.dlSubTab === 'downloading'
+        ? '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg><p>暂无下载任务</p>'
+        : '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>暂无下载记录</p>') +
+      '</div>';
+  }
+
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var iconSvg = item.type === 'video'
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 8l7 4-7 4Z"/></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>';
+
+    var statusHtml = '';
+    if (item.status === 'queued') {
+      statusHtml = '<span class="gray">排队中</span>';
+    } else if (item.status === 'downloading') {
+      statusHtml = '<span class="spinner"></span><span class="cyan">下载中 ' + item.progress + '%</span>';
+    } else if (item.status === 'completed') {
+      statusHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span class="green">已完成</span>';
+    } else {
+      statusHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="red">' + (item.errorMessage || '下载失败') + '</span>';
+    }
+
+    var actionsHtml = '';
+    if (item.status === 'error') {
+      actionsHtml += '<button class="dl-action-btn" onclick="dlRetry(\'' + item.id + '\')">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' +
+      '</button>';
+    }
+    if (item.status === 'completed') {
+      if (item.filePath) {
+        actionsHtml += '<button class="dl-action-btn open" onclick="handleOpenFile(\'' + item.filePath.replace(/'/g, "\\'") + '\')">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00F2EA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>' +
+        '</button>';
+      }
+      actionsHtml += '<button class="dl-action-btn danger" onclick="handleDeleteFile(\'' + item.id + '\',\'' + (item.filePath ? item.filePath.replace(/'/g, "\\'") : '') + '\')">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+      '</button>';
+    }
+    if (item.status === 'error') {
+      actionsHtml += '<button class="dl-action-btn danger" onclick="dlRemove(\'' + item.id + '\')">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+      '</button>';
+    }
+    if (item.status === 'queued') {
+      actionsHtml += '<button class="dl-action-btn" onclick="dlRemove(\'' + item.id + '\')">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
+      '</button>';
+    }
+
+    html += '<div class="dl-item">' +
+      '<div class="dl-item-row">' +
+        '<div class="dl-item-icon">' + iconSvg + '</div>' +
+        '<div class="dl-item-info">' +
+          '<div class="dl-item-name">' + escapeHtml(item.filename) + '</div>' +
+          '<div class="dl-item-status">' + statusHtml + '</div>' +
+        '</div>' +
+        '<div class="dl-item-actions">' + actionsHtml + '</div>' +
+      '</div>';
+
+    if (item.status === 'downloading') {
+      html += '<div class="dl-progress-wrap">' +
+        '<div class="dl-progress-bar"><div class="dl-progress-fill" style="width:' + item.progress + '%"></div></div>' +
+        '<span class="dl-progress-pct">' + item.progress + '%</span>' +
+      '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  var completedCount = 0;
+  for (var i = 0; i < state.downloadItems.length; i++) {
+    if (state.downloadItems[i].status === 'completed') completedCount++;
+  }
+  if (state.dlSubTab === 'completed' && completedCount > 0) {
+    html += '<div class="dl-footer"><button class="dl-clear" onclick="dlClearCompleted()">清除已完成</button></div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function bindDownloadEvents() {
+  // Tab bar events
+  var tabs = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        state.activeTab = this.getAttribute('data-tab');
+        render();
+      });
+    })(tabs[i]);
+  }
 }
 
 function renderVideoResult(data) {
@@ -713,6 +1231,17 @@ function bindEvents() {
       }
       render();
     });
+  }
+
+  // Tab bar events
+  var tabs = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < tabs.length; i++) {
+    (function(btn) {
+      btn.addEventListener('click', function() {
+        state.activeTab = this.getAttribute('data-tab');
+        render();
+      });
+    })(tabs[i]);
   }
 }
 
@@ -1123,67 +1652,59 @@ function handleVideoDownload() {
     return;
   }
 
-  var filename = (data.title || 'douyin_video') + '_' + sel.label + '.mp4';
-  filename = filename.replace(/[\\/:*?"<>|]/g, '_');
-
-  if (nativeDownload(sel.url, filename, 'video/mp4')) {
-    nativeToast('开始下载: ' + filename);
-  } else {
-    nativeToast('下载功能需要原生支持');
-  }
+  var filename = sanitizeFilename(data.title || 'douyin_video') + '_' + sel.label + '.mp4';
+  dlAdd(filename, sel.url, 'video');
+  nativeToast('已添加到下载队列');
 }
 
 function handleSingleImageDownload(idx) {
   var data = state.parseResult;
   if (!data || data.type !== 'image' || !data.images[idx]) return;
 
-  state.downloadingIndex = idx;
-  render();
-
   var img = data.images[idx];
   var ext = img.url.indexOf('.webp') >= 0 ? 'webp' : 'jpg';
-  var filename = (data.title || 'douyin_image') + '_' + (idx + 1) + '.' + ext;
-  filename = filename.replace(/[\\/:*?"<>|]/g, '_');
-
-  if (nativeDownload(img.url, filename, 'image/' + (ext === 'webp' ? 'webp' : 'jpeg'))) {
-    nativeToast('开始下载图片 ' + (idx + 1));
-  } else {
-    nativeToast('下载功能需要原生支持');
-  }
-
-  setTimeout(function() {
-    state.downloadingIndex = -1;
-    render();
-  }, 1500);
+  var filename = sanitizeFilename(data.title || 'douyin_image') + '_' + (idx + 1) + '.' + ext;
+  dlAdd(filename, img.url, 'image');
+  nativeToast('已添加到下载队列');
 }
 
 function handleBatchImageDownload() {
   var data = state.parseResult;
   if (!data || data.type !== 'image' || state.selectedImages.length === 0) return;
 
-  state.downloadingAll = true;
-  render();
-
-  var successCount = 0;
+  var count = 0;
   for (var i = 0; i < state.selectedImages.length; i++) {
     var idx = state.selectedImages[i];
     var img = data.images[idx];
     if (!img) continue;
-
     var ext = img.url.indexOf('.webp') >= 0 ? 'webp' : 'jpg';
-    var filename = (data.title || 'douyin_image') + '_' + (idx + 1) + '.' + ext;
-    filename = filename.replace(/[\\/:*?"<>|]/g, '_');
-
-    if (nativeDownload(img.url, filename, 'image/' + (ext === 'webp' ? 'webp' : 'jpeg'))) {
-      successCount++;
-    }
+    var filename = sanitizeFilename(data.title || 'douyin_image') + '_' + (idx + 1) + '.' + ext;
+    dlAdd(filename, img.url, 'image');
+    count++;
   }
 
-  nativeToast('已添加 ' + successCount + '/' + state.selectedImages.length + ' 个下载任务');
-
-  state.downloadingAll = false;
+  nativeToast('已添加 ' + count + ' 张图片到下载队列');
   state.selectedImages = [];
   render();
+}
+
+function handleOpenFile(filePath) {
+  var bridge = typeof AndroidBridge !== 'undefined' ? AndroidBridge :
+               typeof window.DouyinNative !== 'undefined' ? window.DouyinNative : null;
+  if (bridge && bridge.openFile) {
+    bridge.openFile(filePath);
+  } else {
+    nativeToast('无法打开文件');
+  }
+}
+
+function handleDeleteFile(id, filePath) {
+  var bridge = typeof AndroidBridge !== 'undefined' ? AndroidBridge :
+               typeof window.DouyinNative !== 'undefined' ? window.DouyinNative : null;
+  if (filePath && bridge && bridge.deleteDownloadedFile) {
+    bridge.deleteDownloadedFile(filePath);
+  }
+  dlRemove(id);
 }
 
 function init() {
